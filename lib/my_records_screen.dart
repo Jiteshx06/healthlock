@@ -6,6 +6,7 @@ import 'navigation_service.dart';
 import 'responsive_utils.dart';
 import 'api_service.dart';
 import 'analyze_records_screen.dart';
+import 'chat_screen.dart';
 
 class MyRecordsScreen extends StatefulWidget {
   final bool showBottomNav;
@@ -193,6 +194,24 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => const AnalyzeRecordsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // HealthLock AI Chat Card
+                  _buildActionCard(
+                    icon: Icons.smart_toy_outlined,
+                    iconColor: const Color(0xFF8B5CF6),
+                    title: 'HealthLock AI',
+                    subtitle: 'Chat with AI assistant',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ChatScreen(),
                         ),
                       );
                     },
