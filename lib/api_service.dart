@@ -12,7 +12,7 @@ class ApiService {
   static String get loginEndpoint => AppConfig.loginEndpoint;
   static String get registerEndpoint => AppConfig.registerEndpoint;
   static String get fileUploadEndpoint => '/files/upload';
-  
+
   // Login method
   static Future<LoginResponse> login({
     required String email,
@@ -20,23 +20,20 @@ class ApiService {
   }) async {
     try {
       final url = Uri.parse('$baseUrl$loginEndpoint');
-      
+
       final response = await http.post(
         url,
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          "ngrok-skip-browser-warning":"1",
+          "ngrok-skip-browser-warning": "1",
         },
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
+        body: jsonEncode({'email': email, 'password': password}),
       );
-      
+
       print('Login API Response Status: ${response.statusCode}');
       print('Login API Response Body: ${response.body}');
-      
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
         final loginResponse = LoginResponse.fromJson(data);
@@ -169,10 +166,7 @@ class ApiService {
       print('User ID: $userId');
       print('Headers: $headers');
 
-      final response = await http.get(
-        Uri.parse(url),
-        headers: headers,
-      );
+      final response = await http.get(Uri.parse(url), headers: headers);
 
       print('=== USER FILES RESPONSE ===');
       print('Status Code: ${response.statusCode}');
@@ -192,19 +186,26 @@ class ApiService {
       } else if (response.statusCode == 404) {
         throw ApiException('No files found for this user.');
       } else {
-        throw ApiException('Failed to fetch files (${response.statusCode}). Please try again.');
+        throw ApiException(
+          'Failed to fetch files (${response.statusCode}). Please try again.',
+        );
       }
     } catch (e) {
       print('Get User Files Error: $e');
       if (e is ApiException) {
         rethrow;
       }
-      throw ApiException('Network error. Please check your connection and try again.');
+      throw ApiException(
+        'Network error. Please check your connection and try again.',
+      );
     }
   }
 
   // Generate temporary QR code URL for file sharing
-  static Future<QRGenerateResponse> generateTempUrl(String userId, String fileId) async {
+  static Future<QRGenerateResponse> generateTempUrl(
+    String userId,
+    String fileId,
+  ) async {
     try {
       // Get auth headers for POST request
       final headers = await _getAuthHeaders();
@@ -219,10 +220,7 @@ class ApiService {
       print('File ID: $fileId');
       print('Headers: $headers');
 
-      final response = await http.post(
-        Uri.parse(url),
-        headers: headers,
-      );
+      final response = await http.post(Uri.parse(url), headers: headers);
 
       print('=== QR GENERATION RESPONSE ===');
       print('Status Code: ${response.statusCode}');
@@ -242,14 +240,18 @@ class ApiService {
       } else if (response.statusCode == 404) {
         throw ApiException('File not found.');
       } else {
-        throw ApiException('Failed to generate QR code (${response.statusCode}). Please try again.');
+        throw ApiException(
+          'Failed to generate QR code (${response.statusCode}). Please try again.',
+        );
       }
     } catch (e) {
       print('Generate QR Code Error: $e');
       if (e is ApiException) {
         rethrow;
       }
-      throw ApiException('Network error. Please check your connection and try again.');
+      throw ApiException(
+        'Network error. Please check your connection and try again.',
+      );
     }
   }
 
@@ -257,7 +259,7 @@ class ApiService {
   static Future<FileUploadResponse> _uploadWithFieldName(
     File file,
     String fileName,
-    String fieldName
+    String fieldName,
   ) async {
     try {
       // Get user ID from token
@@ -290,7 +292,8 @@ class ApiService {
           contentType = 'application/msword';
           break;
         case 'docx':
-          contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+          contentType =
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
           break;
         default:
           contentType = 'application/octet-stream';
@@ -363,20 +366,30 @@ class ApiService {
           if (uploadResponse.analysis != null) {
             print('Analysis Data:');
             print('  - ID: ${uploadResponse.analysis!.id}');
-            print('  - OCR Text Length: ${uploadResponse.analysis!.ocrText.length} chars');
-            print('  - Medical Entities: ${uploadResponse.analysis!.medicalEntities.length} items');
-            print('  - Analysis Date: ${uploadResponse.analysis!.analysisDate}');
+            print(
+              '  - OCR Text Length: ${uploadResponse.analysis!.ocrText.length} chars',
+            );
+            print(
+              '  - Medical Entities: ${uploadResponse.analysis!.medicalEntities.length} items',
+            );
+            print(
+              '  - Analysis Date: ${uploadResponse.analysis!.analysisDate}',
+            );
           }
 
           return uploadResponse;
         } catch (parseError) {
           print('Error parsing upload response: $parseError');
           print('Raw response data: ${response.data}');
-          throw ApiException('Server response format error. Please contact support.');
+          throw ApiException(
+            'Server response format error. Please contact support.',
+          );
         }
       } else if (response.statusCode == 400) {
         print('400 Bad Request Response: ${response.data}');
-        throw ApiException('Bad request. Please check file format and try again.');
+        throw ApiException(
+          'Bad request. Please check file format and try again.',
+        );
       } else if (response.statusCode == 401) {
         throw ApiException('Authentication failed. Please login again.');
       } else if (response.statusCode == 413) {
@@ -385,9 +398,13 @@ class ApiService {
         final errorData = response.data;
         throw ApiException(errorData['message'] ?? 'Invalid file format');
       } else if (response.statusCode == 500) {
-        throw ApiException('Server error. Please try again later or contact support.');
+        throw ApiException(
+          'Server error. Please try again later or contact support.',
+        );
       } else {
-        throw ApiException('File upload failed (${response.statusCode}). Please try again.');
+        throw ApiException(
+          'File upload failed (${response.statusCode}). Please try again.',
+        );
       }
     } catch (e) {
       if (e is ApiException) {
@@ -400,13 +417,20 @@ class ApiService {
         if (e.toString().contains('status code of 500')) {
           throw ApiException('Server error occurred. Please try again later.');
         } else if (e.toString().contains('status code of 404')) {
-          throw ApiException('Upload endpoint not found. Please check server configuration.');
+          throw ApiException(
+            'Upload endpoint not found. Please check server configuration.',
+          );
         } else if (e.toString().contains('status code of 413')) {
           throw ApiException('File too large. Please select a smaller file.');
-        } else if (e.toString().contains('SocketException') || e.toString().contains('HandshakeException')) {
-          throw ApiException('Network connection failed. Please check your internet connection.');
+        } else if (e.toString().contains('SocketException') ||
+            e.toString().contains('HandshakeException')) {
+          throw ApiException(
+            'Network connection failed. Please check your internet connection.',
+          );
         } else {
-          throw ApiException('Upload failed: ${e.toString().split(':').last.trim()}');
+          throw ApiException(
+            'Upload failed: ${e.toString().split(':').last.trim()}',
+          );
         }
       } else {
         throw ApiException('Network error. Please check your connection.');
@@ -418,24 +442,58 @@ class ApiService {
   static Future<bool> testConnection() async {
     try {
       // Try to reach a simple endpoint or the base URL
-      final url = Uri.parse(baseUrl.replaceAll('/api', '')); // Remove /api to test base domain
-      final response = await http.get(url).timeout(
-        const Duration(seconds: 5),
-      );
+      final url = Uri.parse(
+        baseUrl.replaceAll('/api', ''),
+      ); // Remove /api to test base domain
+      final response = await http.get(url).timeout(const Duration(seconds: 5));
       // Accept any response that's not a network error (even 404 means server is reachable)
       return response.statusCode < 500;
     } catch (e) {
       print('Connection test failed: $e');
       // Try alternative connectivity test
       try {
-        final googleTest = await http.get(Uri.parse('https://www.google.com')).timeout(
-          const Duration(seconds: 3),
-        );
+        final googleTest = await http
+            .get(Uri.parse('https://www.google.com'))
+            .timeout(const Duration(seconds: 3));
         return googleTest.statusCode == 200;
       } catch (e2) {
         print('Google connectivity test also failed: $e2');
         return false;
       }
+    }
+  }
+
+  // Analyze Records API
+  static Future<AnalyzeRecordsResponse> analyzeRecords(String userId) async {
+    try {
+      print('=== ANALYZING RECORDS ===');
+      print('User ID: $userId');
+
+      final token = await TokenService.getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+
+      final dio = Dio();
+      dio.options.headers['Authorization'] = 'Bearer $token';
+      dio.options.headers['Content-Type'] = 'application/json';
+
+      final url = '$baseUrl/analysis/analyze/$userId';
+      print('Making request to: $url');
+
+      final response = await dio.get(url);
+
+      print('Response status: ${response.statusCode}');
+      print('Response data: ${response.data}');
+
+      if (response.statusCode == 200) {
+        return AnalyzeRecordsResponse.fromJson(response.data);
+      } else {
+        throw Exception('Failed to analyze records: ${response.statusMessage}');
+      }
+    } catch (e) {
+      print('Error analyzing records: $e');
+      throw Exception('Failed to analyze records: $e');
     }
   }
 }
@@ -446,21 +504,21 @@ class LoginResponse {
   final String message;
   final String? token;
   final PatientData? patient;
-  
+
   LoginResponse({
     required this.success,
     required this.message,
     this.token,
     this.patient,
   });
-  
+
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
     return LoginResponse(
       success: json['success'] ?? true,
       message: json['message'] ?? 'Login successful',
       token: json['token'],
-      patient: json['patient'] != null 
-          ? PatientData.fromJson(json['patient']) 
+      patient: json['patient'] != null
+          ? PatientData.fromJson(json['patient'])
           : null,
     );
   }
@@ -528,17 +586,15 @@ class FileUploadResponse {
   final FileData? file;
   final AnalysisData? analysis;
 
-  FileUploadResponse({
-    required this.message,
-    this.file,
-    this.analysis,
-  });
+  FileUploadResponse({required this.message, this.file, this.analysis});
 
   factory FileUploadResponse.fromJson(Map<String, dynamic> json) {
     return FileUploadResponse(
       message: json['message'] ?? 'File uploaded successfully',
       file: json['file'] != null ? FileData.fromJson(json['file']) : null,
-      analysis: json['analysis'] != null ? AnalysisData.fromJson(json['analysis']) : null,
+      analysis: json['analysis'] != null
+          ? AnalysisData.fromJson(json['analysis'])
+          : null,
     );
   }
 
@@ -632,17 +688,16 @@ class UserFilesResponse {
   final int totalFiles;
   final List<UserFileData> files;
 
-  UserFilesResponse({
-    required this.totalFiles,
-    required this.files,
-  });
+  UserFilesResponse({required this.totalFiles, required this.files});
 
   factory UserFilesResponse.fromJson(Map<String, dynamic> json) {
     return UserFilesResponse(
       totalFiles: json['totalFiles'] ?? 0,
-      files: (json['files'] as List<dynamic>?)
-          ?.map((fileJson) => UserFileData.fromJson(fileJson))
-          .toList() ?? [],
+      files:
+          (json['files'] as List<dynamic>?)
+              ?.map((fileJson) => UserFileData.fromJson(fileJson))
+              .toList() ??
+          [],
     );
   }
 
@@ -754,49 +809,9 @@ class AnalyzeRecordsResponse {
       userId: json['userId'] ?? '',
       totalChunks: json['totalChunks'] ?? 0,
       shortSummary: json['shortSummary'] ?? '',
-      detailedResults: List<Map<String, dynamic>>.from(json['detailedResults'] ?? []),
+      detailedResults: List<Map<String, dynamic>>.from(
+        json['detailedResults'] ?? [],
+      ),
     );
   }
 }
-
-  // Analyze Records API
-  static Future<AnalyzeRecordsResponse> analyzeRecords(String userId) async {
-    try {
-      print('=== ANALYZING RECORDS ===');
-      print('User ID: $userId');
-
-      final token = await TokenService.getToken();
-      if (token == null) {
-        throw Exception('No authentication token found');
-      }
-
-      final url = 'http://localhost:3000/api/analysis/analyze/$userId';
-      print('URL: $url');
-
-      final headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-        'ngrok-skip-browser-warning': '1',
-      };
-      print('Headers: $headers');
-
-      final response = await http.get(
-        Uri.parse(url),
-        headers: headers,
-      );
-
-      print('=== ANALYZE RESPONSE ===');
-      print('Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final jsonData = json.decode(response.body);
-        return AnalyzeRecordsResponse.fromJson(jsonData);
-      } else {
-        throw Exception('Failed to analyze records (${response.statusCode})');
-      }
-    } catch (e) {
-      print('Analyze Records Error: $e');
-      throw Exception('Failed to analyze records: $e');
-    }
-  }

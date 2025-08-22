@@ -7,7 +7,6 @@ import 'notifications_screen.dart';
 import 'settings_screen.dart';
 import 'my_records_detail_screen.dart';
 import 'upload_document_screen.dart';
-import 'share_history_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -23,9 +22,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF4285F4)),
         useMaterial3: true,
-        textTheme: GoogleFonts.interTextTheme(
-          Theme.of(context).textTheme,
-        ),
+        textTheme: GoogleFonts.interTextTheme(Theme.of(context).textTheme),
       ),
       home: const LoginScreen(),
       debugShowCheckedModeBanner: false,
@@ -42,5 +39,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-

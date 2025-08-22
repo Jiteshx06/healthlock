@@ -2,15 +2,11 @@ import 'package:flutter/material.dart';
 import 'my_records_screen.dart';
 import 'notifications_screen.dart';
 import 'settings_screen.dart';
-import 'responsive_utils.dart';
 
 class MainContainer extends StatefulWidget {
   final int initialIndex;
-  
-  const MainContainer({
-    super.key,
-    this.initialIndex = 0,
-  });
+
+  const MainContainer({super.key, this.initialIndex = 0});
 
   @override
   State<MainContainer> createState() => _MainContainerState();
@@ -67,7 +63,7 @@ class _MainContainerState extends State<MainContainer> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),

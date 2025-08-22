@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'main_container.dart';
 import 'responsive_utils.dart';
 import 'api_service.dart';
@@ -14,12 +13,10 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _isPasswordVisible = false;
-  bool _isBiometricEnabled = true;
   bool _isLoginTab = true;
   bool _isLoading = false;
-  
+
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _ageController = TextEditingController();
@@ -70,9 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
         // Navigate to main screen
         if (mounted) {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const MainContainer(),
-            ),
+            MaterialPageRoute(builder: (context) => const MainContainer()),
           );
         }
       } else {
@@ -150,9 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
         // Navigate to main screen
         if (mounted) {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const MainContainer(),
-            ),
+            MaterialPageRoute(builder: (context) => const MainContainer()),
           );
         }
       } else {
@@ -225,130 +218,147 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: ResponsiveUtils.getResponsiveHorizontalPadding(context),
               child: Column(
                 children: [
-              const SizedBox(height: 60),
-              
-              // Logo and Title Section
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4285F4),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.local_hospital,
-                  color: Colors.white,
-                  size: 40,
-                ),
-              ),
-              
-              const SizedBox(height: 24),
-              
-              Text(
-                'HealthLock',
-                style: AppTextStyles.heading1(context),
-              ),
+                  const SizedBox(height: 60),
 
-              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 8)),
-
-              Text(
-                'Your Health, Our Priority',
-                style: AppTextStyles.bodyMedium(context).copyWith(
-                  color: const Color(0xFF6B7280),
-                ),
-              ),
-
-              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 48)),
-              
-              // Login/Sign Up Tabs
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
+                  // Logo and Title Section
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4285F4),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    // Tab Headers
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => _switchTab(true),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: _isLoginTab ? Colors.transparent : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: _isLoginTab 
-                                    ? const Border(
-                                        bottom: BorderSide(
-                                          color: Color(0xFF4285F4),
-                                          width: 2,
-                                        ),
-                                      )
-                                    : null,
-                                ),
-                                child: Text(
-                                  'Login',
-                                  textAlign: TextAlign.center,
-                                  style: AppTextStyles.button(context).copyWith(
-                                    color: _isLoginTab ? const Color(0xFF4285F4) : const Color(0xFF6B7280),
+                    child: const Icon(
+                      Icons.local_hospital,
+                      color: Colors.white,
+                      size: 40,
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  Text('HealthLock', style: AppTextStyles.heading1(context)),
+
+                  SizedBox(
+                    height: ResponsiveUtils.getResponsiveSpacing(context, 8),
+                  ),
+
+                  Text(
+                    'Your Health, Our Priority',
+                    style: AppTextStyles.bodyMedium(
+                      context,
+                    ).copyWith(color: const Color(0xFF6B7280)),
+                  ),
+
+                  SizedBox(
+                    height: ResponsiveUtils.getResponsiveSpacing(context, 48),
+                  ),
+
+                  // Login/Sign Up Tabs
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        // Tab Headers
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () => _switchTab(true),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _isLoginTab
+                                          ? Colors.transparent
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: _isLoginTab
+                                          ? const Border(
+                                              bottom: BorderSide(
+                                                color: Color(0xFF4285F4),
+                                                width: 2,
+                                              ),
+                                            )
+                                          : null,
+                                    ),
+                                    child: Text(
+                                      'Login',
+                                      textAlign: TextAlign.center,
+                                      style: AppTextStyles.button(context)
+                                          .copyWith(
+                                            color: _isLoginTab
+                                                ? const Color(0xFF4285F4)
+                                                : const Color(0xFF6B7280),
+                                          ),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => _switchTab(false),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: !_isLoginTab ? Colors.transparent : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: !_isLoginTab 
-                                    ? const Border(
-                                        bottom: BorderSide(
-                                          color: Color(0xFF4285F4),
-                                          width: 2,
-                                        ),
-                                      )
-                                    : null,
-                                ),
-                                child: Text(
-                                  'Sign Up',
-                                  textAlign: TextAlign.center,
-                                  style: AppTextStyles.button(context).copyWith(
-                                    color: !_isLoginTab ? const Color(0xFF4285F4) : const Color(0xFF6B7280),
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () => _switchTab(false),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: !_isLoginTab
+                                          ? Colors.transparent
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: !_isLoginTab
+                                          ? const Border(
+                                              bottom: BorderSide(
+                                                color: Color(0xFF4285F4),
+                                                width: 2,
+                                              ),
+                                            )
+                                          : null,
+                                    ),
+                                    child: Text(
+                                      'Sign Up',
+                                      textAlign: TextAlign.center,
+                                      style: AppTextStyles.button(context)
+                                          .copyWith(
+                                            color: !_isLoginTab
+                                                ? const Color(0xFF4285F4)
+                                                : const Color(0xFF6B7280),
+                                          ),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
 
-                    // Form Fields
-                    Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: _isLoginTab ? _buildLoginForm() : _buildRegisterForm(),
+                        // Form Fields
+                        Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: _isLoginTab
+                              ? _buildLoginForm()
+                              : _buildRegisterForm(),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
 
-              const SizedBox(height: 40),
-            ],
+                  const SizedBox(height: 40),
+                ],
               ),
             ),
           ),
@@ -375,9 +385,9 @@ class _LoginScreenState extends State<LoginScreen> {
           keyboardType: TextInputType.emailAddress,
           decoration: InputDecoration(
             hintText: 'Enter your email',
-            hintStyle: AppTextStyles.bodyMedium(context).copyWith(
-              color: const Color(0xFF9CA3AF),
-            ),
+            hintStyle: AppTextStyles.bodyMedium(
+              context,
+            ).copyWith(color: const Color(0xFF9CA3AF)),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
@@ -413,9 +423,9 @@ class _LoginScreenState extends State<LoginScreen> {
           obscureText: !_isPasswordVisible,
           decoration: InputDecoration(
             hintText: 'Enter your password',
-            hintStyle: AppTextStyles.bodyMedium(context).copyWith(
-              color: const Color(0xFF9CA3AF),
-            ),
+            hintStyle: AppTextStyles.bodyMedium(
+              context,
+            ).copyWith(color: const Color(0xFF9CA3AF)),
             suffixIcon: IconButton(
               icon: Icon(
                 _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
@@ -475,9 +485,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   )
                 : Text(
                     'Login',
-                    style: AppTextStyles.button(context).copyWith(
-                      color: Colors.white,
-                    ),
+                    style: AppTextStyles.button(
+                      context,
+                    ).copyWith(color: Colors.white),
                   ),
           ),
         ),
@@ -502,9 +512,9 @@ class _LoginScreenState extends State<LoginScreen> {
           controller: _nameController,
           decoration: InputDecoration(
             hintText: 'Enter your full name',
-            hintStyle: AppTextStyles.bodyMedium(context).copyWith(
-              color: const Color(0xFF9CA3AF),
-            ),
+            hintStyle: AppTextStyles.bodyMedium(
+              context,
+            ).copyWith(color: const Color(0xFF9CA3AF)),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
@@ -540,9 +550,9 @@ class _LoginScreenState extends State<LoginScreen> {
           keyboardType: TextInputType.emailAddress,
           decoration: InputDecoration(
             hintText: 'Enter your email',
-            hintStyle: AppTextStyles.bodyMedium(context).copyWith(
-              color: const Color(0xFF9CA3AF),
-            ),
+            hintStyle: AppTextStyles.bodyMedium(
+              context,
+            ).copyWith(color: const Color(0xFF9CA3AF)),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
@@ -578,9 +588,9 @@ class _LoginScreenState extends State<LoginScreen> {
           keyboardType: TextInputType.number,
           decoration: InputDecoration(
             hintText: 'Enter your age',
-            hintStyle: AppTextStyles.bodyMedium(context).copyWith(
-              color: const Color(0xFF9CA3AF),
-            ),
+            hintStyle: AppTextStyles.bodyMedium(
+              context,
+            ).copyWith(color: const Color(0xFF9CA3AF)),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
@@ -616,9 +626,9 @@ class _LoginScreenState extends State<LoginScreen> {
           obscureText: !_isPasswordVisible,
           decoration: InputDecoration(
             hintText: 'Enter your password (min 6 characters)',
-            hintStyle: AppTextStyles.bodyMedium(context).copyWith(
-              color: const Color(0xFF9CA3AF),
-            ),
+            hintStyle: AppTextStyles.bodyMedium(
+              context,
+            ).copyWith(color: const Color(0xFF9CA3AF)),
             suffixIcon: IconButton(
               icon: Icon(
                 _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
@@ -678,9 +688,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   )
                 : Text(
                     'Create Account',
-                    style: AppTextStyles.button(context).copyWith(
-                      color: Colors.white,
-                    ),
+                    style: AppTextStyles.button(
+                      context,
+                    ).copyWith(color: Colors.white),
                   ),
           ),
         ),
