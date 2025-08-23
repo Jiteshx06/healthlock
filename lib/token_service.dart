@@ -5,28 +5,29 @@ class TokenService {
   static const String _tokenKey = 'auth_token';
   static const String _userIdKey = 'user_id';
   static const String _userRoleKey = 'user_role';
+  static const String _userNameKey = 'user_name';
 
   // Save token and extract user info
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
-    
+
     // Decode JWT to extract user info
     try {
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
-      
+
       // Extract user ID and role from token
       String? userId = decodedToken['id'];
       String? userRole = decodedToken['role'];
-      
+
       if (userId != null) {
         await prefs.setString(_userIdKey, userId);
       }
-      
+
       if (userRole != null) {
         await prefs.setString(_userRoleKey, userRole);
       }
-      
+
       print('Token saved successfully');
       print('User ID: $userId');
       print('User Role: $userRole');
@@ -53,11 +54,23 @@ class TokenService {
     return prefs.getString(_userRoleKey);
   }
 
+  // Get user name from storage
+  static Future<String?> getUserName() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_userNameKey);
+  }
+
+  // Save user name
+  static Future<void> saveUserName(String name) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_userNameKey, name);
+  }
+
   // Check if token is valid (not expired)
   static Future<bool> isTokenValid() async {
     final token = await getToken();
     if (token == null) return false;
-    
+
     try {
       return !JwtDecoder.isExpired(token);
     } catch (e) {
@@ -72,6 +85,7 @@ class TokenService {
     await prefs.remove(_tokenKey);
     await prefs.remove(_userIdKey);
     await prefs.remove(_userRoleKey);
+    await prefs.remove(_userNameKey);
     print('Token cleared successfully');
   }
 
@@ -85,10 +99,7 @@ class TokenService {
         'Accept': 'application/json',
       };
     }
-    return {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    };
+    return {'Content-Type': 'application/json', 'Accept': 'application/json'};
   }
 
   // Get authorization header for multipart requests
@@ -101,9 +112,6 @@ class TokenService {
         'ngrok-skip-browser-warning': '1',
       };
     }
-    return {
-      'Accept': 'application/json',
-      'ngrok-skip-browser-warning': '1',
-    };
+    return {'Accept': 'application/json', 'ngrok-skip-browser-warning': '1'};
   }
 }

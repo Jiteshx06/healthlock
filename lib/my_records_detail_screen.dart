@@ -20,6 +20,7 @@ class _MyRecordsDetailScreenState extends State<MyRecordsDetailScreen> {
   List<UserFileData> _userFiles = [];
   bool _isLoading = true;
   String? _errorMessage;
+  UserFileData? _selectedFile;
 
   @override
   void initState() {
@@ -64,10 +65,7 @@ class _MyRecordsDetailScreenState extends State<MyRecordsDetailScreen> {
         backgroundColor: const Color(0xFFF5F7FA),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: Color(0xFF1A1A1A),
-          ),
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1A1A)),
           onPressed: () {
             Navigator.of(context).pop();
           },
@@ -82,17 +80,11 @@ class _MyRecordsDetailScreenState extends State<MyRecordsDetailScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(
-              Icons.refresh,
-              color: Color(0xFF1A1A1A),
-            ),
+            icon: const Icon(Icons.refresh, color: Color(0xFF1A1A1A)),
             onPressed: _refreshFiles,
           ),
           IconButton(
-            icon: const Icon(
-              Icons.search,
-              color: Color(0xFF1A1A1A),
-            ),
+            icon: const Icon(Icons.search, color: Color(0xFF1A1A1A)),
             onPressed: () {
               // Implement search functionality
               print('Search tapped');
@@ -103,42 +95,41 @@ class _MyRecordsDetailScreenState extends State<MyRecordsDetailScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // File preview card (shown when a file is selected)
+          if (_selectedFile != null) _buildFilePreviewCard(),
+
           // Records count
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20.0,
+              vertical: 8.0,
+            ),
             child: Text(
               _isLoading ? 'Loading...' : '${_userFiles.length} Records',
-              style: const TextStyle(
-                fontSize: 16,
-                color: Color(0xFF6B7280),
-              ),
+              style: const TextStyle(fontSize: 16, color: Color(0xFF6B7280)),
             ),
           ),
-          
+
           // Records list
-          Expanded(
-            child: _buildRecordsList(),
-          ),
+          Expanded(child: _buildRecordsList()),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // Navigate to Upload Document Screen
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => const UploadDocumentScreen(),
-            ),
-          ).then((_) {
-            // Refresh the files list when returning from upload
-            _refreshFiles();
-          });
+          Navigator.of(context)
+              .push(
+                MaterialPageRoute(
+                  builder: (context) => const UploadDocumentScreen(),
+                ),
+              )
+              .then((_) {
+                // Refresh the files list when returning from upload
+                _refreshFiles();
+              });
         },
         backgroundColor: const Color(0xFF4285F4),
-        child: const Icon(
-          Icons.add,
-          color: Colors.white,
-          size: 28,
-        ),
+        child: const Icon(Icons.add, color: Colors.white, size: 28),
       ),
     );
   }
@@ -146,9 +137,7 @@ class _MyRecordsDetailScreenState extends State<MyRecordsDetailScreen> {
   Widget _buildRecordsList() {
     if (_isLoading) {
       return const Center(
-        child: CircularProgressIndicator(
-          color: Color(0xFF4285F4),
-        ),
+        child: CircularProgressIndicator(color: Color(0xFF4285F4)),
       );
     }
 
@@ -225,11 +214,13 @@ class _MyRecordsDetailScreenState extends State<MyRecordsDetailScreen> {
             SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 24)),
             ElevatedButton.icon(
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const UploadDocumentScreen(),
-                  ),
-                ).then((_) => _refreshFiles());
+                Navigator.of(context)
+                    .push(
+                      MaterialPageRoute(
+                        builder: (context) => const UploadDocumentScreen(),
+                      ),
+                    )
+                    .then((_) => _refreshFiles());
               },
               icon: const Icon(Icons.cloud_upload_outlined),
               label: const Text('Upload Document'),
@@ -256,12 +247,305 @@ class _MyRecordsDetailScreenState extends State<MyRecordsDetailScreen> {
     );
   }
 
+  Widget _buildFilePreviewCard() {
+    if (_selectedFile == null) return const SizedBox.shrink();
+
+    final file = _selectedFile!;
+
+    return Container(
+      margin: const EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with file name and close button
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: const BoxDecoration(
+              color: Color(0xFF4285F4),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    file.fileName,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _selectedFile = null;
+                    });
+                  },
+                  icon: const Icon(Icons.close, color: Colors.white, size: 24),
+                ),
+              ],
+            ),
+          ),
+
+          // File content preview
+          Container(
+            height: 300,
+            width: double.infinity,
+            padding: const EdgeInsets.all(16.0),
+            child: _buildFileContentPreview(file),
+          ),
+
+          // Action buttons at bottom
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildActionButton(
+                  icon: Icons.visibility_outlined,
+                  label: 'View',
+                  onPressed: () => _viewFile(file),
+                ),
+                _buildActionButton(
+                  icon: Icons.share_outlined,
+                  label: 'Share',
+                  onPressed: () => _shareFile(file),
+                ),
+                _buildActionButton(
+                  icon: Icons.download_outlined,
+                  label: 'Download',
+                  onPressed: () => _downloadFile(file),
+                ),
+                _buildActionButton(
+                  icon: Icons.more_vert,
+                  label: 'More',
+                  onPressed: () => _showFileDetails(file),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: const Color(0xFF4285F4).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: IconButton(
+            onPressed: onPressed,
+            icon: Icon(icon, color: const Color(0xFF4285F4), size: 24),
+            padding: EdgeInsets.zero,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Color(0xFF6B7280),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFileContentPreview(UserFileData file) {
+    final fileName = file.fileName.toLowerCase();
+
+    // Check if it's an image file
+    if (fileName.endsWith('.jpg') ||
+        fileName.endsWith('.jpeg') ||
+        fileName.endsWith('.png') ||
+        fileName.endsWith('.gif') ||
+        fileName.endsWith('.bmp') ||
+        fileName.endsWith('.webp')) {
+      return Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(
+            file.fileUrl,
+            fit: BoxFit.contain,
+            width: double.infinity,
+            height: double.infinity,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                          : null,
+                      color: const Color(0xFF4285F4),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Loading image...',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              print('Image load error: $error');
+              print('Image URL: ${file.fileUrl}');
+              return Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.broken_image_outlined,
+                      size: 64,
+                      color: Colors.grey.shade400,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Could not load image',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Tap "View" to open in full screen',
+                      style: TextStyle(
+                        color: Colors.grey.shade500,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
+    // For PDF files
+    else if (fileName.endsWith('.pdf')) {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.red.shade50,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.red.shade200),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.picture_as_pdf, size: 48, color: Colors.red.shade400),
+            const SizedBox(height: 8),
+            Text(
+              'PDF Document',
+              style: TextStyle(
+                color: Colors.red.shade700,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Tap "View" to open',
+              style: TextStyle(color: Colors.red.shade600, fontSize: 12),
+            ),
+          ],
+        ),
+      );
+    }
+    // For other file types
+    else {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              _getFileTypeIcon(file.fileName),
+              size: 48,
+              color: _getFileTypeColor(file.fileName),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _getFileTypeText(file.fileName),
+              style: TextStyle(
+                color: Colors.grey.shade700,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Tap "View" to open',
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
   Widget _buildFileItem(UserFileData file) {
+    final isSelected = _selectedFile?.id == file.id;
+
     return GestureDetector(
       onTap: () {
-        // Handle file tap - directly open the file
-        print('Opening file: ${file.fileName}');
-        _viewFile(file);
+        // Handle file tap - set as selected file for preview
+        setState(() {
+          _selectedFile = file;
+        });
       },
       onLongPress: () {
         // Long press shows file options menu
@@ -272,9 +556,12 @@ class _MyRecordsDetailScreenState extends State<MyRecordsDetailScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
+          border: isSelected
+              ? Border.all(color: const Color(0xFF4285F4), width: 2)
+              : null,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -323,7 +610,9 @@ class _MyRecordsDetailScreenState extends State<MyRecordsDetailScreen> {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: _getFileTypeColor(file.fileName).withOpacity(0.1),
+                          color: _getFileTypeColor(
+                            file.fileName,
+                          ).withOpacity(0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
@@ -590,10 +879,7 @@ class _MyRecordsDetailScreenState extends State<MyRecordsDetailScreen> {
     Color? textColor,
   }) {
     return ListTile(
-      leading: Icon(
-        icon,
-        color: textColor ?? const Color(0xFF4285F4),
-      ),
+      leading: Icon(icon, color: textColor ?? const Color(0xFF4285F4)),
       title: Text(
         title,
         style: TextStyle(
@@ -618,7 +904,10 @@ class _MyRecordsDetailScreenState extends State<MyRecordsDetailScreen> {
             _buildInfoRow('File ID', file.id),
             _buildInfoRow('Upload Date', _formatUploadDate(file.uploadedAt)),
             if (file.lastAccessed != null)
-              _buildInfoRow('Last Accessed', _formatUploadDate(file.lastAccessed!)),
+              _buildInfoRow(
+                'Last Accessed',
+                _formatUploadDate(file.lastAccessed!),
+              ),
             _buildInfoRow('File URL', file.fileUrl),
           ],
         ),
@@ -651,9 +940,7 @@ class _MyRecordsDetailScreenState extends State<MyRecordsDetailScreen> {
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                color: Color(0xFF1A1A1A),
-              ),
+              style: const TextStyle(color: Color(0xFF1A1A1A)),
             ),
           ),
         ],
@@ -666,7 +953,9 @@ class _MyRecordsDetailScreenState extends State<MyRecordsDetailScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete File'),
-        content: Text('Are you sure you want to delete "${file.fileName}"? This action cannot be undone.'),
+        content: Text(
+          'Are you sure you want to delete "${file.fileName}"? This action cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -677,7 +966,9 @@ class _MyRecordsDetailScreenState extends State<MyRecordsDetailScreen> {
               Navigator.pop(context);
               // TODO: Implement file deletion
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('File deletion will be implemented')),
+                const SnackBar(
+                  content: Text('File deletion will be implemented'),
+                ),
               );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -698,9 +989,7 @@ class _MyRecordsDetailScreenState extends State<MyRecordsDetailScreen> {
     try {
       // Navigate to the WebView-based file viewer
       Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => FileViewerScreen(file: file),
-        ),
+        MaterialPageRoute(builder: (context) => FileViewerScreen(file: file)),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -731,15 +1020,9 @@ class _MyRecordsDetailScreenState extends State<MyRecordsDetailScreen> {
       );
 
       if (await canLaunchUrl(fileUri)) {
-        await launchUrl(
-          fileUri,
-          mode: LaunchMode.externalApplication,
-        );
+        await launchUrl(fileUri, mode: LaunchMode.externalApplication);
       } else {
-        await launchUrl(
-          fileUri,
-          mode: LaunchMode.platformDefault,
-        );
+        await launchUrl(fileUri, mode: LaunchMode.platformDefault);
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -755,8 +1038,6 @@ class _MyRecordsDetailScreenState extends State<MyRecordsDetailScreen> {
       );
     }
   }
-
-
 
   // Share file URL
   Future<void> _shareFile(UserFileData file) async {
@@ -850,6 +1131,57 @@ class _MyRecordsDetailScreenState extends State<MyRecordsDetailScreen> {
           ),
         ),
       );
+    }
+  }
+
+  // Helper method to get page count (simplified for now)
+  String _getPageCount(UserFileData file) {
+    // For now, return a default value. In a real app, you might
+    // extract this from file metadata or make an API call
+    return '12'; // Default page count as shown in the image
+  }
+
+  // Helper method to format date
+  String _formatDate(String dateString) {
+    try {
+      final date = DateTime.parse(dateString);
+      final now = DateTime.now();
+      final difference = now.difference(date);
+
+      if (difference.inDays == 0) {
+        return 'Today';
+      } else if (difference.inDays == 1) {
+        return 'Yesterday';
+      } else if (difference.inDays < 7) {
+        return '${difference.inDays} days ago';
+      } else {
+        return '${date.day}/${date.month}/${date.year}';
+      }
+    } catch (e) {
+      return dateString; // Return original string if parsing fails
+    }
+  }
+
+  // Helper method to get file type text
+  String _getFileTypeText(String fileName) {
+    final extension = fileName.toLowerCase().split('.').last;
+    switch (extension) {
+      case 'pdf':
+        return 'PDF Document';
+      case 'jpg':
+      case 'jpeg':
+        return 'JPEG Image';
+      case 'png':
+        return 'PNG Image';
+      case 'gif':
+        return 'GIF Image';
+      case 'doc':
+      case 'docx':
+        return 'Word Document';
+      case 'txt':
+        return 'Text File';
+      default:
+        return '${extension.toUpperCase()} File';
     }
   }
 }

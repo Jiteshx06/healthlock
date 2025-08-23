@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'api_service.dart';
+import 'token_service.dart';
 
 class FileViewerScreen extends StatefulWidget {
   final UserFileData file;
 
-  const FileViewerScreen({
-    Key? key,
-    required this.file,
-  }) : super(key: key);
+  const FileViewerScreen({Key? key, required this.file}) : super(key: key);
 
   @override
   State<FileViewerScreen> createState() => _FileViewerScreenState();
@@ -22,6 +20,31 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
   @override
   void initState() {
     super.initState();
+    _addAuditLog();
+  }
+
+  Future<void> _addAuditLog() async {
+    try {
+      // Check if user is a doctor
+      final userRole = await TokenService.getUserRole();
+      if (userRole != 'doctor') return;
+
+      final doctorId = await TokenService.getUserId();
+      final doctorName = await TokenService.getUserName();
+
+      if (doctorId != null && doctorName != null) {
+        await ApiService.addLog(
+          doctorId: doctorId,
+          doctorName: doctorName,
+          patientId: widget.file.userId ?? 'unknown',
+          fileName: widget.file.fileName,
+        );
+        print('Audit log added for file view: ${widget.file.fileName}');
+      }
+    } catch (e) {
+      print('Error adding audit log: $e');
+      // Don't show error to user, just log it
+    }
   }
 
   void _shareFile() {
@@ -68,7 +91,10 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
             _buildInfoRow('File Name', widget.file.fileName),
             _buildInfoRow('Upload Date', _formatDate(widget.file.uploadedAt)),
             if (widget.file.lastAccessed != null)
-              _buildInfoRow('Last Accessed', _formatDate(widget.file.lastAccessed!)),
+              _buildInfoRow(
+                'Last Accessed',
+                _formatDate(widget.file.lastAccessed!),
+              ),
             _buildInfoRow('File URL', widget.file.fileUrl),
           ],
         ),
@@ -101,9 +127,7 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                color: Color(0xFF1A1A1A),
-              ),
+              style: const TextStyle(color: Color(0xFF1A1A1A)),
             ),
           ),
         ],
@@ -128,10 +152,7 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: Color(0xFF1A1A1A),
-          ),
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1A1A)),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -146,24 +167,15 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(
-              Icons.open_in_browser,
-              color: Color(0xFF1A1A1A),
-            ),
+            icon: const Icon(Icons.open_in_browser, color: Color(0xFF1A1A1A)),
             onPressed: _openInBrowser,
           ),
           IconButton(
-            icon: const Icon(
-              Icons.share,
-              color: Color(0xFF1A1A1A),
-            ),
+            icon: const Icon(Icons.share, color: Color(0xFF1A1A1A)),
             onPressed: _shareFile,
           ),
           IconButton(
-            icon: const Icon(
-              Icons.info_outline,
-              color: Color(0xFF1A1A1A),
-            ),
+            icon: const Icon(Icons.info_outline, color: Color(0xFF1A1A1A)),
             onPressed: _showFileInfo,
           ),
         ],
@@ -175,11 +187,12 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
   Widget _buildBody() {
     // Check if it's an image file
     final fileName = widget.file.fileName.toLowerCase();
-    final isImage = fileName.endsWith('.jpg') ||
-                   fileName.endsWith('.jpeg') ||
-                   fileName.endsWith('.png') ||
-                   fileName.endsWith('.gif') ||
-                   fileName.endsWith('.webp');
+    final isImage =
+        fileName.endsWith('.jpg') ||
+        fileName.endsWith('.jpeg') ||
+        fileName.endsWith('.png') ||
+        fileName.endsWith('.gif') ||
+        fileName.endsWith('.webp');
 
     if (isImage) {
       return InteractiveViewer(
@@ -207,7 +220,7 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
                           color: const Color(0xFF4285F4),
                           value: loadingProgress.expectedTotalBytes != null
                               ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
+                                    loadingProgress.expectedTotalBytes!
                               : null,
                         ),
                         const SizedBox(height: 16),
@@ -246,10 +259,7 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
                       const SizedBox(height: 8),
                       const Text(
                         'The image could not be loaded',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 24),
@@ -282,11 +292,7 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.description,
-                size: 80,
-                color: Colors.grey.shade400,
-              ),
+              Icon(Icons.description, size: 80, color: Colors.grey.shade400),
               const SizedBox(height: 24),
               Text(
                 widget.file.fileName,
@@ -300,10 +306,7 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
               const SizedBox(height: 8),
               Text(
                 'Document file',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
-                ),
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               ),
               const SizedBox(height: 32),
               ElevatedButton.icon(
@@ -313,7 +316,10 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF4285F4),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -323,7 +329,10 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
                 label: const Text('Share Link'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: const Color(0xFF4285F4),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                 ),
               ),
             ],

@@ -1,18 +1,15 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'api_service.dart';
 import 'token_service.dart';
 import 'responsive_utils.dart';
+import 'audit_log_screen.dart';
 
 class ShareHistoryScreen extends StatefulWidget {
   final UserFileData file;
 
-  const ShareHistoryScreen({
-    super.key,
-    required this.file,
-  });
+  const ShareHistoryScreen({super.key, required this.file});
 
   @override
   State<ShareHistoryScreen> createState() => _ShareHistoryScreenState();
@@ -43,10 +40,7 @@ class _ShareHistoryScreenState extends State<ShareHistoryScreen> {
         backgroundColor: const Color(0xFFF5F7FA),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: Color(0xFF1A1A1A),
-          ),
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1A1A)),
           onPressed: () {
             Navigator.of(context).pop();
           },
@@ -67,57 +61,65 @@ class _ShareHistoryScreenState extends State<ShareHistoryScreen> {
                 width: double.infinity,
                 height: 300,
                 decoration: BoxDecoration(
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFF667EEA),
-                      Color(0xFF764BA2),
-                      Color(0xFFFF6B6B),
-                      Color(0xFF4ECDC4),
-                    ],
-                    stops: [0.0, 0.3, 0.7, 1.0],
-                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
                 ),
-                child: Stack(
+                child: Column(
                   children: [
-                    // Gradient overlay for better text visibility
+                    // Header with file name
                     Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withOpacity(0.3),
-                          ],
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF4285F4),
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(16),
+                          topRight: Radius.circular(16),
                         ),
                       ),
-                    ),
-                    // Page indicator at bottom
-                    const Positioned(
-                      bottom: 20,
-                      left: 0,
-                      right: 0,
-                      child: Center(
-                        child: Text(
-                          'Page 1 of 12',
-                          style: TextStyle(
+                      child: Row(
+                        children: [
+                          Icon(
+                            _getFileTypeIcon(widget.file.fileName),
                             color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                            size: 24,
                           ),
-                        ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              widget.file.fileName,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // File content preview
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(16.0),
+                        child: _buildFileContentPreview(widget.file),
                       ),
                     ),
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Action Buttons
               Column(
                 children: [
@@ -158,15 +160,17 @@ class _ShareHistoryScreenState extends State<ShareHistoryScreen> {
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 12),
-                  
+
                   // Revoke Access Button
                   SizedBox(
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton.icon(
-                      onPressed: _sharedDocuments.isEmpty ? null : _showRevokeDialog,
+                      onPressed: _sharedDocuments.isEmpty
+                          ? null
+                          : _showRevokeDialog,
                       icon: const Icon(
                         Icons.block_outlined,
                         color: Colors.white,
@@ -193,9 +197,9 @@ class _ShareHistoryScreenState extends State<ShareHistoryScreen> {
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 12),
-                  
+
                   // View Audit Log Button
                   SizedBox(
                     width: double.infinity,
@@ -228,9 +232,9 @@ class _ShareHistoryScreenState extends State<ShareHistoryScreen> {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // File Information Section
               Container(
                 width: double.infinity,
@@ -250,15 +254,21 @@ class _ShareHistoryScreenState extends State<ShareHistoryScreen> {
                   children: [
                     _buildInfoRow('File name', widget.file.fileName),
                     const SizedBox(height: 16),
-                    _buildInfoRow('Date uploaded', _formatDate(widget.file.uploadedAt)),
+                    _buildInfoRow(
+                      'Date uploaded',
+                      _formatDate(widget.file.uploadedAt),
+                    ),
                     const SizedBox(height: 16),
                     _buildInfoRow('File ID', widget.file.id),
                     const SizedBox(height: 16),
-                    _buildInfoRow('Last accessed', widget.file.lastAccessed ?? 'Never'),
+                    _buildInfoRow(
+                      'Last accessed',
+                      widget.file.lastAccessed ?? 'Never',
+                    ),
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 40),
             ],
           ),
@@ -273,10 +283,7 @@ class _ShareHistoryScreenState extends State<ShareHistoryScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 14,
-            color: Color(0xFF6B7280),
-          ),
+          style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
         ),
         Expanded(
           child: Text(
@@ -323,7 +330,9 @@ class _ShareHistoryScreenState extends State<ShareHistoryScreen> {
         'userId': userId,
         'fileId': widget.file.id,
         'sharedAt': DateTime.now().toIso8601String(),
-        'expiresAt': DateTime.now().add(const Duration(minutes: 5)).toIso8601String(),
+        'expiresAt': DateTime.now()
+            .add(const Duration(minutes: 5))
+            .toIso8601String(),
       };
 
       final jsonString = json.encode(qrJsonData);
@@ -368,10 +377,7 @@ class _ShareHistoryScreenState extends State<ShareHistoryScreen> {
           ),
           title: const Text(
             'QR Code Generated',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
           content: SizedBox(
             width: 300,
@@ -414,23 +420,6 @@ class _ShareHistoryScreenState extends State<ShareHistoryScreen> {
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () {
-                Clipboard.setData(ClipboardData(text: qrData.tempUrl));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Document data copied to clipboard'),
-                    backgroundColor: Color(0xFF4285F4),
-                  ),
-                );
-              },
-              child: const Text(
-                'Copy Data',
-                style: TextStyle(
-                  color: Color(0xFF6B7280),
-                ),
-              ),
-            ),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
@@ -441,10 +430,7 @@ class _ShareHistoryScreenState extends State<ShareHistoryScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text(
-                'Done',
-                style: TextStyle(color: Colors.white),
-              ),
+              child: const Text('Done', style: TextStyle(color: Colors.white)),
             ),
           ],
         );
@@ -462,17 +448,11 @@ class _ShareHistoryScreenState extends State<ShareHistoryScreen> {
           ),
           title: const Text(
             'Share Securely',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
           content: const Text(
             'Generate a secure link to share this document with healthcare providers or authorized personnel.',
-            style: TextStyle(
-              fontSize: 14,
-              color: Color(0xFF6B7280),
-            ),
+            style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
           ),
           actions: [
             TextButton(
@@ -481,9 +461,7 @@ class _ShareHistoryScreenState extends State<ShareHistoryScreen> {
               },
               child: const Text(
                 'Cancel',
-                style: TextStyle(
-                  color: Color(0xFF6B7280),
-                ),
+                style: TextStyle(color: Color(0xFF6B7280)),
               ),
             ),
             ElevatedButton(
@@ -491,7 +469,9 @@ class _ShareHistoryScreenState extends State<ShareHistoryScreen> {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Secure link generated and copied to clipboard'),
+                    content: Text(
+                      'Secure link generated and copied to clipboard',
+                    ),
                     backgroundColor: Color(0xFF4285F4),
                   ),
                 );
@@ -532,10 +512,7 @@ class _ShareHistoryScreenState extends State<ShareHistoryScreen> {
                 children: [
                   const Text(
                     'Active Shares',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                   ),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
@@ -599,10 +576,7 @@ class _ShareHistoryScreenState extends State<ShareHistoryScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFFF9FAFB),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFFE5E7EB),
-          width: 1,
-        ),
+        border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
       ),
       child: Row(
         children: [
@@ -674,18 +648,12 @@ class _ShareHistoryScreenState extends State<ShareHistoryScreen> {
             borderRadius: BorderRadius.circular(16),
           ),
           title: const Text(
-            'Revoke Access',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
+            'Revoke Access & Delete File',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
           content: const Text(
-            'This will revoke access for this specific share. Are you sure?',
-            style: TextStyle(
-              fontSize: 14,
-              color: Color(0xFF6B7280),
-            ),
+            'This will permanently delete the file from the backend and revoke all access. This action cannot be undone.',
+            style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
           ),
           actions: [
             TextButton(
@@ -694,24 +662,13 @@ class _ShareHistoryScreenState extends State<ShareHistoryScreen> {
               },
               child: const Text(
                 'Cancel',
-                style: TextStyle(
-                  color: Color(0xFF6B7280),
-                ),
+                style: TextStyle(color: Color(0xFF6B7280)),
               ),
             ),
             ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _sharedDocuments.removeAt(index);
-                });
+              onPressed: () async {
                 Navigator.of(context).pop();
-                Navigator.of(context).pop(); // Close the bottom sheet too
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Access revoked successfully'),
-                    backgroundColor: Color(0xFFDC3545),
-                  ),
-                );
+                await _deleteFile();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFDC3545),
@@ -720,7 +677,7 @@ class _ShareHistoryScreenState extends State<ShareHistoryScreen> {
                 ),
               ),
               child: const Text(
-                'Revoke',
+                'Delete File',
                 style: TextStyle(color: Colors.white),
               ),
             ),
@@ -730,80 +687,91 @@ class _ShareHistoryScreenState extends State<ShareHistoryScreen> {
     );
   }
 
-  void _showAuditLog() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext context) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.7,
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Audit Log',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Expanded(
-                child: ListView(
-                  children: [
-                    _buildAuditItem(
-                      'Document shared',
-                      'Shared with Dr. Smith',
-                      'Jan 20, 2024 at 2:30 PM',
-                      Icons.share_outlined,
-                      const Color(0xFF4285F4),
-                    ),
-                    _buildAuditItem(
-                      'Document viewed',
-                      'Viewed by Dr. Smith',
-                      'Jan 20, 2024 at 3:15 PM',
-                      Icons.visibility_outlined,
-                      const Color(0xFF10B981),
-                    ),
-                    _buildAuditItem(
-                      'Access granted',
-                      'Access granted to Nurse Johnson',
-                      'Jan 19, 2024 at 10:00 AM',
-                      Icons.lock_open_outlined,
-                      const Color(0xFF8B5CF6),
-                    ),
-                    _buildAuditItem(
-                      'Document uploaded',
-                      'Document uploaded to secure storage',
-                      'Jan 15, 2024 at 9:45 AM',
-                      Icons.cloud_upload_outlined,
-                      const Color(0xFF06B6D4),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+  Future<void> _deleteFile() async {
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const AlertDialog(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: Color(0xFF4285F4)),
+                SizedBox(height: 16),
+                Text('Deleting file...'),
+              ],
+            ),
+          );
+        },
+      );
+
+      // Call delete API
+      final success = await ApiService.deleteFile(widget.file.id);
+
+      if (mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+
+        if (success) {
+          // Clear shared documents
+          setState(() {
+            _sharedDocuments.clear();
+            _currentQRData = null;
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('File deleted successfully'),
+              backgroundColor: Color(0xFF10B981),
+            ),
+          );
+
+          // Navigate back to previous screen
+          Navigator.of(context).pop();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to delete file'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error deleting file: ${e.toString()}'),
+            backgroundColor: Colors.red,
           ),
         );
-      },
-    );
+      }
+    }
   }
 
-  Widget _buildAuditItem(String title, String subtitle, String time, IconData icon, Color iconColor) {
+  void _showAuditLog() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const AuditLogScreen()));
+  }
+
+  Widget _buildAuditItem(
+    String title,
+    String subtitle,
+    String time,
+    IconData icon,
+    Color iconColor,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFFF9FAFB),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFFE5E7EB),
-          width: 1,
-        ),
+        border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
       ),
       child: Row(
         children: [
@@ -814,11 +782,7 @@ class _ShareHistoryScreenState extends State<ShareHistoryScreen> {
               color: iconColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
-              icon,
-              color: iconColor,
-              size: 20,
-            ),
+            child: Icon(icon, color: iconColor, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -855,5 +819,246 @@ class _ShareHistoryScreenState extends State<ShareHistoryScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildFileContentPreview(UserFileData file) {
+    final fileName = file.fileName.toLowerCase();
+
+    // Check if it's an image file
+    if (fileName.endsWith('.jpg') ||
+        fileName.endsWith('.jpeg') ||
+        fileName.endsWith('.png') ||
+        fileName.endsWith('.gif') ||
+        fileName.endsWith('.bmp') ||
+        fileName.endsWith('.webp')) {
+      return Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(
+            file.fileUrl,
+            fit: BoxFit.contain,
+            width: double.infinity,
+            height: double.infinity,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                          : null,
+                      color: const Color(0xFF4285F4),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Loading image...',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              print('Image load error: $error');
+              print('Image URL: ${file.fileUrl}');
+              return Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.broken_image_outlined,
+                      size: 64,
+                      color: Colors.grey.shade400,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Could not load image',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Tap "Share Securely" to continue',
+                      style: TextStyle(
+                        color: Colors.grey.shade500,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
+    // For PDF files
+    else if (fileName.endsWith('.pdf')) {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.red.shade50,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.red.shade200),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.picture_as_pdf, size: 64, color: Colors.red.shade400),
+            const SizedBox(height: 16),
+            Text(
+              'PDF Document',
+              style: TextStyle(
+                color: Colors.red.shade700,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Ready to share securely',
+              style: TextStyle(color: Colors.red.shade600, fontSize: 14),
+            ),
+          ],
+        ),
+      );
+    }
+    // For other file types
+    else {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              _getFileTypeIcon(file.fileName),
+              size: 64,
+              color: _getFileTypeColor(file.fileName),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _getFileTypeText(file.fileName),
+              style: TextStyle(
+                color: Colors.grey.shade700,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Ready to share securely',
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  IconData _getFileTypeIcon(String fileName) {
+    final extension = fileName.toLowerCase().split('.').last;
+    switch (extension) {
+      case 'pdf':
+        return Icons.picture_as_pdf;
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+      case 'bmp':
+      case 'webp':
+        return Icons.image;
+      case 'doc':
+      case 'docx':
+        return Icons.description;
+      case 'txt':
+        return Icons.text_snippet;
+      case 'xls':
+      case 'xlsx':
+        return Icons.table_chart;
+      case 'ppt':
+      case 'pptx':
+        return Icons.slideshow;
+      default:
+        return Icons.insert_drive_file;
+    }
+  }
+
+  Color _getFileTypeColor(String fileName) {
+    final extension = fileName.toLowerCase().split('.').last;
+    switch (extension) {
+      case 'pdf':
+        return Colors.red;
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+      case 'bmp':
+      case 'webp':
+        return Colors.blue;
+      case 'doc':
+      case 'docx':
+        return Colors.blue.shade700;
+      case 'txt':
+        return Colors.grey.shade600;
+      case 'xls':
+      case 'xlsx':
+        return Colors.green;
+      case 'ppt':
+      case 'pptx':
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _getFileTypeText(String fileName) {
+    final extension = fileName.toLowerCase().split('.').last;
+    switch (extension) {
+      case 'pdf':
+        return 'PDF Document';
+      case 'jpg':
+      case 'jpeg':
+        return 'JPEG Image';
+      case 'png':
+        return 'PNG Image';
+      case 'gif':
+        return 'GIF Image';
+      case 'doc':
+      case 'docx':
+        return 'Word Document';
+      case 'txt':
+        return 'Text File';
+      case 'xls':
+      case 'xlsx':
+        return 'Excel Spreadsheet';
+      case 'ppt':
+      case 'pptx':
+        return 'PowerPoint Presentation';
+      default:
+        return '${extension.toUpperCase()} File';
+    }
   }
 }

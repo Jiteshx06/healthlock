@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'navigation_service.dart';
+import 'audit_log_screen.dart';
+import 'api_service.dart';
+import 'token_service.dart';
 
 class NotificationsScreen extends StatefulWidget {
   final bool showBottomNav;
 
-  const NotificationsScreen({
-    super.key,
-    this.showBottomNav = true,
-  });
+  const NotificationsScreen({super.key, this.showBottomNav = true});
 
   @override
   State<NotificationsScreen> createState() => _NotificationsScreenState();
@@ -67,7 +67,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (_selectedCategory == 'All') {
       return _notifications;
     }
-    return _notifications.where((notification) => notification.category == _selectedCategory).toList();
+    return _notifications
+        .where((notification) => notification.category == _selectedCategory)
+        .toList();
   }
 
   @override
@@ -81,9 +83,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       body: content,
-      bottomNavigationBar: const CustomBottomNavigationBar(
-        currentIndex: 1,
-      ),
+      bottomNavigationBar: const CustomBottomNavigationBar(currentIndex: 1),
     );
   }
 
@@ -96,8 +96,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             // Header Section
             Padding(
               padding: const EdgeInsets.all(20.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
                     'Notifications',
@@ -107,27 +107,67 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       color: Color(0xFF1A1A1A),
                     ),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      // Clear all notifications
-                      setState(() {
-                        _notifications.clear();
-                      });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('All notifications cleared'),
-                          backgroundColor: Color(0xFF10B981),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const AuditLogScreen(),
+                              ),
+                            );
+                          },
+                          icon: const Icon(
+                            Icons.history_outlined,
+                            size: 16,
+                            color: Colors.white,
+                          ),
+                          label: const Text(
+                            'Audit Log',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4285F4),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                          ),
                         ),
-                      );
-                    },
-                    child: const Text(
-                      'Clear All',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Color(0xFF4285F4),
-                        fontWeight: FontWeight.w500,
                       ),
-                    ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            // Clear all notifications
+                            setState(() {
+                              _notifications.clear();
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('All notifications cleared'),
+                                backgroundColor: Color(0xFF10B981),
+                              ),
+                            );
+                          },
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFF4285F4)),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                          ),
+                          child: const Text(
+                            'Clear All',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF4285F4),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -159,10 +199,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           vertical: 10,
                         ),
                         decoration: BoxDecoration(
-                          color: isSelected ? const Color(0xFF4285F4) : Colors.white,
+                          color: isSelected
+                              ? const Color(0xFF4285F4)
+                              : Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: isSelected ? const Color(0xFF4285F4) : const Color(0xFFE5E7EB),
+                            color: isSelected
+                                ? const Color(0xFF4285F4)
+                                : const Color(0xFFE5E7EB),
                           ),
                         ),
                         child: Center(
@@ -171,7 +215,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
-                              color: isSelected ? Colors.white : const Color(0xFF6B7280),
+                              color: isSelected
+                                  ? Colors.white
+                                  : const Color(0xFF6B7280),
                             ),
                           ),
                         ),
@@ -221,7 +267,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -235,7 +281,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: const Color(0xFF6B7280).withOpacity(0.1),
+                color: const Color(0xFF6B7280).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
@@ -256,7 +302,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     notification.title,
                     style: TextStyle(
                       fontSize: 16,
-                      fontWeight: notification.isUnread ? FontWeight.w600 : FontWeight.w500,
+                      fontWeight: notification.isUnread
+                          ? FontWeight.w600
+                          : FontWeight.w500,
                       color: const Color(0xFF1A1A1A),
                     ),
                     maxLines: 2,

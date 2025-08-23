@@ -3,10 +3,12 @@ import 'my_records_detail_screen.dart';
 import 'upload_document_screen.dart';
 import 'share_history_screen.dart';
 import 'navigation_service.dart';
-import 'responsive_utils.dart';
 import 'api_service.dart';
+import 'token_service.dart';
 import 'analyze_records_screen.dart';
 import 'chat_screen.dart';
+import 'qr_scanner_screen.dart';
+import 'audit_log_screen.dart';
 
 class MyRecordsScreen extends StatefulWidget {
   final bool showBottomNav;
@@ -20,11 +22,15 @@ class MyRecordsScreen extends StatefulWidget {
 class _MyRecordsScreenState extends State<MyRecordsScreen> {
   int _totalFiles = 0;
   bool _isLoadingCount = true;
+  bool _isDoctor = false;
+  String _userName = 'HealthLock User';
 
   @override
   void initState() {
     super.initState();
     _loadFileCount();
+    _loadUserName();
+    _checkUserRole();
   }
 
   Future<void> _loadFileCount() async {
@@ -43,6 +49,32 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
           _isLoadingCount = false;
         });
       }
+    }
+  }
+
+  Future<void> _loadUserName() async {
+    try {
+      final name = await TokenService.getUserName();
+      if (mounted && name != null) {
+        setState(() {
+          _userName = name;
+        });
+      }
+    } catch (e) {
+      // Keep default name if error
+    }
+  }
+
+  Future<void> _checkUserRole() async {
+    try {
+      final role = await TokenService.getUserRole();
+      if (mounted) {
+        setState(() {
+          _isDoctor = role == 'doctor';
+        });
+      }
+    } catch (e) {
+      print('Error checking user role: $e');
     }
   }
 
@@ -68,152 +100,260 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header Section
-            Padding(
-              padding: ResponsiveUtils.getResponsivePadding(context),
-              child: Row(
-                children: [
-                  // Profile Avatar
-                  Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(25),
-                      color: const Color(0xFF4285F4),
-                    ),
-                    child: const Icon(
-                      Icons.person,
-                      color: Colors.white,
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // App Title
-                  Expanded(
-                    child: Text(
-                      'HealthLock',
-                      style: AppTextStyles.heading3(context),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Greeting Section
-            Padding(
-              padding: ResponsiveUtils.getResponsiveHorizontalPadding(context),
+            Container(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              decoration: const BoxDecoration(color: Colors.white),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Hello, Sarah', style: AppTextStyles.heading2(context)),
-                  SizedBox(
-                    height: ResponsiveUtils.getResponsiveSpacing(context, 4),
+                  // Top Row with Profile and Notifications
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF10B981),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Icon(
+                              Icons.person,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _userName,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF1A1A1A),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const AuditLogScreen(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.history_outlined,
+                              color: Color(0xFF6B7280),
+                              size: 24,
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              // Navigate to notifications
+                            },
+                            icon: const Icon(
+                              Icons.notifications_outlined,
+                              color: Color(0xFF6B7280),
+                              size: 24,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  Text(
-                    'Manage your health records securely',
-                    style: AppTextStyles.bodyMedium(
-                      context,
-                    ).copyWith(color: const Color(0xFF6B7280)),
+
+                  const SizedBox(height: 24),
+
+                  // Main Title
+                  const Text(
+                    'Health solution\nmade simple 🏥',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1A1A1A),
+                      height: 1.2,
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Search Bar
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF3F4F6),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.search,
+                          color: Color(0xFF9CA3AF),
+                          size: 20,
+                        ),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Text(
+                            'Search health records...',
+                            style: TextStyle(
+                              color: Color(0xFF9CA3AF),
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.tune,
+                          color: Color(0xFF9CA3AF),
+                          size: 20,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
 
-            // Action Cards Section
+            // Quick Stats Card
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF4285F4), Color(0xFF1E40AF)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: const Icon(
+                        Icons.folder_outlined,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _isLoadingCount
+                                ? 'Loading...'
+                                : '$_totalFiles Records',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const Text(
+                            'Stored securely in your account',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Health Services Section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // My Records Card
-                  _buildActionCard(
-                    icon: Icons.description_outlined,
-                    iconColor: const Color(0xFF4285F4),
-                    title: 'My Records',
-                    subtitle: _isLoadingCount
-                        ? 'Loading...'
-                        : '$_totalFiles document${_totalFiles != 1 ? 's' : ''}',
-                    onTap: () {
-                      // Navigate to My Records Detail Screen
-                      Navigator.of(context)
-                          .push(
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const MyRecordsDetailScreen(),
-                            ),
-                          )
-                          .then((_) {
-                            // Refresh count when returning
-                            _loadFileCount();
-                          });
-                    },
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Health Services',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1A1A1A),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {},
+                        child: const Text(
+                          'See all',
+                          style: TextStyle(
+                            color: Color(0xFF4285F4),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
 
                   const SizedBox(height: 16),
 
-                  // Upload New Report Card
-                  _buildActionCard(
-                    icon: Icons.cloud_upload_outlined,
-                    iconColor: const Color(0xFF4285F4),
-                    title: 'Upload New Report',
-                    subtitle: 'Last upload: 2 days ago',
-                    onTap: () {
-                      // Navigate to Upload Document Screen
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const UploadDocumentScreen(),
-                        ),
-                      );
-                    },
+                  // Services Grid
+                  GridView.count(
+                    crossAxisCount: 4,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 0.85,
+                    children: _buildServiceCards(),
                   ),
 
                   const SizedBox(height: 16),
 
                   // Share History Card
-                  _buildActionCard(
-                    icon: Icons.lock_outline,
-                    iconColor: const Color(0xFF4285F4),
-                    title: 'Share History',
-                    subtitle: '3 recent shares',
+                  _buildFeatureCard(
+                    icon: Icons.share_outlined,
+                    iconColor: const Color(0xFFF59E0B),
+                    title: 'Share Medical History',
+                    subtitle: 'Securely share with healthcare providers',
                     onTap: () {
-                      // Show file selection for sharing
                       _showFileSelectionForSharing();
-                    },
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Analyze Records Card
-                  _buildActionCard(
-                    icon: Icons.analytics_outlined,
-                    iconColor: const Color(0xFF10B981),
-                    title: 'Analyze Records',
-                    subtitle: 'AI health insights',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AnalyzeRecordsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // HealthLock AI Chat Card
-                  _buildActionCard(
-                    icon: Icons.smart_toy_outlined,
-                    iconColor: const Color(0xFF8B5CF6),
-                    title: 'HealthLock AI',
-                    subtitle: 'Chat with AI assistant',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ChatScreen(),
-                        ),
-                      );
                     },
                   ),
                 ],
@@ -275,70 +415,6 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
     );
   }
 
-  Widget _buildActionCard({
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: iconColor, size: 24),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1A1A1A),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF6B7280),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right, color: Color(0xFF9CA3AF), size: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildActivityItem({
     required String title,
     required String subtitle,
@@ -352,7 +428,7 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: const Color(0xFF6B7280).withOpacity(0.1),
+            color: const Color(0xFF6B7280).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Icon(icon, color: const Color(0xFF6B7280), size: 16),
@@ -401,6 +477,8 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
       // Fetch user files
       final userFilesResponse = await ApiService.getUserFiles();
 
+      if (!mounted) return;
+
       if (userFilesResponse.files.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -419,44 +497,55 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         builder: (BuildContext context) {
-          return Container(
-            height: MediaQuery.of(context).size.height * 0.7,
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          return DraggableScrollableSheet(
+            initialChildSize: 0.7,
+            minChildSize: 0.5,
+            maxChildSize: 0.9,
+            expand: false,
+            builder: (context, scrollController) {
+              return Container(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Select File to Share',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Select File to Share',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
                     ),
-                    IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close),
+                    const SizedBox(height: 20),
+                    Flexible(
+                      child: ListView.builder(
+                        controller: scrollController,
+                        shrinkWrap: true,
+                        itemCount: userFilesResponse.files.length,
+                        itemBuilder: (context, index) {
+                          final file = userFilesResponse.files[index];
+                          return _buildFileSelectionItem(file);
+                        },
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: userFilesResponse.files.length,
-                    itemBuilder: (context, index) {
-                      final file = userFilesResponse.files[index];
-                      return _buildFileSelectionItem(file);
-                    },
-                  ),
-                ),
-              ],
-            ),
+              );
+            },
           );
         },
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to load files: $e'),
@@ -469,35 +558,7 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
   Widget _buildFileSelectionItem(UserFileData file) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Color(0xFFE5E7EB)),
-        ),
-        leading: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: const Color(0xFF4285F4).withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            _getFileIcon(file.fileName),
-            color: const Color(0xFF4285F4),
-            size: 24,
-          ),
-        ),
-        title: Text(
-          file.fileName,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Text(
-          'Uploaded: ${_formatDate(file.uploadedAt)}',
-          style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
-        ),
-        trailing: const Icon(Icons.chevron_right, color: Color(0xFF9CA3AF)),
+      child: InkWell(
         onTap: () {
           Navigator.of(context).pop(); // Close the selection dialog
           Navigator.of(context).push(
@@ -506,6 +567,65 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
             ),
           );
         },
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE5E7EB)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4285F4).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  _getFileIcon(file.fileName),
+                  color: const Color(0xFF4285F4),
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      file.fileName,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Uploaded: ${_formatDate(file.uploadedAt)}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF6B7280),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(
+                Icons.chevron_right,
+                color: Color(0xFF9CA3AF),
+                size: 20,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -534,5 +654,245 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
     } catch (e) {
       return dateString;
     }
+  }
+
+  List<Widget> _buildServiceCards() {
+    List<Widget> cards = [];
+
+    if (_isDoctor) {
+      // Doctor-specific services
+      cards.addAll([
+        _buildServiceCard(
+          icon: Icons.qr_code_scanner,
+          iconColor: const Color(0xFF10B981),
+          title: 'Scan QR',
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const QRScannerScreen()),
+            );
+          },
+        ),
+        _buildServiceCard(
+          icon: Icons.folder_outlined,
+          iconColor: const Color(0xFF3B82F6),
+          title: 'Records',
+          onTap: () {
+            Navigator.of(context)
+                .push(
+                  MaterialPageRoute(
+                    builder: (context) => const MyRecordsDetailScreen(),
+                  ),
+                )
+                .then((_) {
+                  _loadFileCount();
+                });
+          },
+        ),
+        _buildServiceCard(
+          icon: Icons.analytics_outlined,
+          iconColor: const Color(0xFF8B5CF6),
+          title: 'Analyze',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AnalyzeRecordsScreen(),
+              ),
+            );
+          },
+        ),
+        _buildServiceCard(
+          icon: Icons.smart_toy_outlined,
+          iconColor: const Color(0xFFF59E0B),
+          title: 'AI Chat',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ChatScreen()),
+            );
+          },
+        ),
+      ]);
+    } else {
+      // Patient-specific services
+      cards.addAll([
+        _buildServiceCard(
+          icon: Icons.folder_outlined,
+          iconColor: const Color(0xFF3B82F6),
+          title: 'My Records',
+          onTap: () {
+            Navigator.of(context)
+                .push(
+                  MaterialPageRoute(
+                    builder: (context) => const MyRecordsDetailScreen(),
+                  ),
+                )
+                .then((_) {
+                  _loadFileCount();
+                });
+          },
+        ),
+        _buildServiceCard(
+          icon: Icons.upload_file_outlined,
+          iconColor: const Color(0xFFEF4444),
+          title: 'Upload',
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const UploadDocumentScreen(),
+              ),
+            );
+          },
+        ),
+        _buildServiceCard(
+          icon: Icons.analytics_outlined,
+          iconColor: const Color(0xFF10B981),
+          title: 'Analyze',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AnalyzeRecordsScreen(),
+              ),
+            );
+          },
+        ),
+        _buildServiceCard(
+          icon: Icons.smart_toy_outlined,
+          iconColor: const Color(0xFF8B5CF6),
+          title: 'AI Chat',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ChatScreen()),
+            );
+          },
+        ),
+      ]);
+    }
+
+    return cards;
+  }
+
+  Widget _buildServiceCard({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(icon, color: iconColor, size: 16),
+            ),
+            const SizedBox(height: 6),
+            Flexible(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF1A1A1A),
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureCard({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Icon(icon, color: iconColor, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1A1A1A),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF6B7280),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: Color(0xFF9CA3AF),
+              size: 16,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import 'main_container.dart';
 import 'responsive_utils.dart';
 import 'api_service.dart';
@@ -15,11 +17,15 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isPasswordVisible = false;
   bool _isLoginTab = true;
   bool _isLoading = false;
+  bool _isDoctorMode = false; // New state for doctor/patient toggle
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _ageController = TextEditingController();
+  final TextEditingController _specializationController =
+      TextEditingController();
+  File? _degreeFile;
 
   @override
   void initState() {
@@ -55,26 +61,54 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final response = await ApiService.login(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+      if (_isDoctorMode) {
+        // Doctor login
+        final response = await ApiService.doctorLogin(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
 
-      if (response.success) {
-        // Login successful
-        _showSuccessMessage(response.message);
+        if (response.success) {
+          // Login successful
+          _showSuccessMessage(response.message);
 
-        // Navigate to main screen
-        if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const MainContainer()),
-          );
+          // Navigate to main screen
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const MainContainer()),
+            );
+          }
+        } else {
+          _showErrorMessage(response.message);
         }
       } else {
-        _showErrorMessage(response.message);
+        // Patient login
+        final response = await ApiService.login(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+
+        if (response.success) {
+          // Login successful
+          _showSuccessMessage(response.message);
+
+          // Navigate to main screen
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const MainContainer()),
+            );
+          }
+        } else {
+          _showErrorMessage(response.message);
+        }
       }
     } catch (e) {
-      _showErrorMessage(e.toString());
+      if (e.toString().contains('pending admin approval') ||
+          e.toString().contains('Your account is pending')) {
+        _showPendingMessage(e.toString());
+      } else {
+        _showErrorMessage(e.toString());
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -102,21 +136,9 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    if (_ageController.text.trim().isEmpty) {
-      _showErrorMessage('Please enter your age');
-      return;
-    }
-
     // Basic email validation
     if (!_emailController.text.contains('@')) {
       _showErrorMessage('Please enter a valid email address');
-      return;
-    }
-
-    // Age validation
-    final age = int.tryParse(_ageController.text.trim());
-    if (age == null || age < 1 || age > 120) {
-      _showErrorMessage('Please enter a valid age (1-120)');
       return;
     }
 
@@ -126,33 +148,97 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    if (_isDoctorMode) {
+      // Doctor-specific validation
+      if (_specializationController.text.trim().isEmpty) {
+        _showErrorMessage('Please enter your specialization');
+        return;
+      }
+    } else {
+      // Patient-specific validation
+      if (_ageController.text.trim().isEmpty) {
+        _showErrorMessage('Please enter your age');
+        return;
+      }
+
+      // Age validation
+      final age = int.tryParse(_ageController.text.trim());
+      if (age == null || age < 1 || age > 120) {
+        _showErrorMessage('Please enter a valid age (1-120)');
+        return;
+      }
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final response = await ApiService.register(
-        name: _nameController.text.trim(),
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-        age: age,
-      );
+      if (_isDoctorMode) {
+        // Doctor registration
+        final response = await ApiService.doctorRegister(
+          name: _nameController.text.trim(),
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+          specialization: _specializationController.text.trim(),
+          degreeFile: _degreeFile,
+        );
 
-      if (response.success) {
-        // Registration successful
-        _showSuccessMessage(response.message);
+        if (response.success) {
+          // Registration successful
+          _showSuccessMessage(response.message);
 
-        // Navigate to main screen
-        if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const MainContainer()),
-          );
+          // Navigate to main screen
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const MainContainer()),
+            );
+          }
+        } else {
+          _showErrorMessage(response.message);
         }
       } else {
-        _showErrorMessage(response.message);
+        // Patient registration
+        final age = int.tryParse(_ageController.text.trim())!;
+        final response = await ApiService.register(
+          name: _nameController.text.trim(),
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+          age: age,
+        );
+
+        if (response.success) {
+          // Registration successful
+          _showSuccessMessage(response.message);
+
+          // Navigate to main screen
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const MainContainer()),
+            );
+          }
+        } else {
+          _showErrorMessage(response.message);
+        }
       }
     } catch (e) {
-      _showErrorMessage(e.toString());
+      if (e.toString().contains('pending admin approval') ||
+          e.toString().contains('Registration submitted successfully')) {
+        _showPendingMessage(e.toString());
+
+        // Switch to login tab after showing pending message for doctor registration
+        if (_isDoctorMode) {
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) {
+              setState(() {
+                _switchTab(true); // Switch to login tab
+              });
+            }
+          });
+        }
+      } else {
+        _showErrorMessage(e.toString());
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -167,6 +253,25 @@ class _LoginScreenState extends State<LoginScreen> {
     _emailController.clear();
     _passwordController.clear();
     _ageController.clear();
+    _specializationController.clear();
+    _degreeFile = null;
+  }
+
+  Future<void> _pickDegreeFile() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+      );
+
+      if (result != null) {
+        setState(() {
+          _degreeFile = File(result.files.single.path!);
+        });
+      }
+    } catch (e) {
+      _showErrorMessage('Error picking file: $e');
+    }
   }
 
   void _switchTab(bool isLogin) {
@@ -175,7 +280,20 @@ class _LoginScreenState extends State<LoginScreen> {
       _clearFields();
 
       // Pre-fill demo credentials only for login
-      if (isLogin) {
+      if (isLogin && !_isDoctorMode) {
+        _emailController.text = AppConfig.demoEmail;
+        _passwordController.text = AppConfig.demoPassword;
+      }
+    });
+  }
+
+  void _switchUserType(bool isDoctorMode) {
+    setState(() {
+      _isDoctorMode = isDoctorMode;
+      _clearFields();
+
+      // Pre-fill demo credentials only for patient login
+      if (_isLoginTab && !isDoctorMode) {
         _emailController.text = AppConfig.demoEmail;
         _passwordController.text = AppConfig.demoPassword;
       }
@@ -201,6 +319,41 @@ class _LoginScreenState extends State<LoginScreen> {
           content: Text(message),
           backgroundColor: Colors.green,
           duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  void _showPendingMessage(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                message,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              if (_isDoctorMode) ...[
+                const SizedBox(height: 4),
+                const Text(
+                  'You will be redirected to the login page. Please try logging in after admin approval.',
+                  style: TextStyle(fontSize: 12),
+                ),
+              ],
+            ],
+          ),
+          backgroundColor: Colors.orange,
+          duration: const Duration(seconds: 6),
+          action: SnackBarAction(
+            label: 'OK',
+            textColor: Colors.white,
+            onPressed: () {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            },
+          ),
         ),
       );
     }
@@ -251,8 +404,107 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
 
                   SizedBox(
-                    height: ResponsiveUtils.getResponsiveSpacing(context, 48),
+                    height: ResponsiveUtils.getResponsiveSpacing(context, 32),
                   ),
+
+                  // Patient/Doctor Toggle
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF3F4F6),
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => _switchUserType(false),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: !_isDoctorMode
+                                    ? const Color(0xFF4285F4)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(25),
+                              ),
+                              child: Text(
+                                'Patient',
+                                textAlign: TextAlign.center,
+                                style: AppTextStyles.button(context).copyWith(
+                                  color: !_isDoctorMode
+                                      ? Colors.white
+                                      : const Color(0xFF6B7280),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => _switchUserType(true),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: _isDoctorMode
+                                    ? const Color(0xFF4285F4)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(25),
+                              ),
+                              child: Text(
+                                'Doctor',
+                                textAlign: TextAlign.center,
+                                style: AppTextStyles.button(context).copyWith(
+                                  color: _isDoctorMode
+                                      ? Colors.white
+                                      : const Color(0xFF6B7280),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  SizedBox(
+                    height: ResponsiveUtils.getResponsiveSpacing(context, 24),
+                  ),
+
+                  // Doctor verification notice
+                  if (_isDoctorMode && !_isLoginTab)
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 20),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.blue.shade200),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            color: Colors.blue.shade600,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Doctor accounts require admin approval. After registration, you will be redirected to login page. Please wait for approval before attempting to login.',
+                              style: AppTextStyles.bodySmall(context).copyWith(
+                                color: Colors.blue.shade700,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  if (_isDoctorMode && !_isLoginTab)
+                    SizedBox(
+                      height: ResponsiveUtils.getResponsiveSpacing(context, 16),
+                    ),
 
                   // Login/Sign Up Tabs
                   Container(
@@ -574,41 +826,119 @@ class _LoginScreenState extends State<LoginScreen> {
 
         SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 20)),
 
-        // Age Field
-        Text(
-          'Age',
-          style: AppTextStyles.bodySmall(context).copyWith(
-            fontWeight: FontWeight.w500,
-            color: const Color(0xFF374151),
-          ),
-        ),
-        SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 8)),
-        TextField(
-          controller: _ageController,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            hintText: 'Enter your age',
-            hintStyle: AppTextStyles.bodyMedium(
-              context,
-            ).copyWith(color: const Color(0xFF9CA3AF)),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFF4285F4)),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
+        // Conditional fields based on user type
+        if (_isDoctorMode) ...[
+          // Specialization Field for Doctor
+          Text(
+            'Specialization',
+            style: AppTextStyles.bodySmall(context).copyWith(
+              fontWeight: FontWeight.w500,
+              color: const Color(0xFF374151),
             ),
           ),
-        ),
+          SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 8)),
+          TextField(
+            controller: _specializationController,
+            decoration: InputDecoration(
+              hintText: 'Enter your specialization (e.g., MBBS, MD)',
+              hintStyle: AppTextStyles.bodyMedium(
+                context,
+              ).copyWith(color: const Color(0xFF9CA3AF)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFF4285F4)),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+            ),
+          ),
+          SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 20)),
+
+          // Degree File Upload for Doctor
+          Text(
+            'Degree Certificate (Optional)',
+            style: AppTextStyles.bodySmall(context).copyWith(
+              fontWeight: FontWeight.w500,
+              color: const Color(0xFF374151),
+            ),
+          ),
+          SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 8)),
+          GestureDetector(
+            onTap: _pickDegreeFile,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xFFE5E7EB)),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.upload_file, color: const Color(0xFF9CA3AF)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      _degreeFile != null
+                          ? _degreeFile!.path.split('/').last
+                          : 'Upload degree certificate (PDF, JPG, PNG)',
+                      style: AppTextStyles.bodyMedium(context).copyWith(
+                        color: _degreeFile != null
+                            ? const Color(0xFF374151)
+                            : const Color(0xFF9CA3AF),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ] else ...[
+          // Age Field for Patient
+          Text(
+            'Age',
+            style: AppTextStyles.bodySmall(context).copyWith(
+              fontWeight: FontWeight.w500,
+              color: const Color(0xFF374151),
+            ),
+          ),
+          SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 8)),
+          TextField(
+            controller: _ageController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              hintText: 'Enter your age',
+              hintStyle: AppTextStyles.bodyMedium(
+                context,
+              ).copyWith(color: const Color(0xFF9CA3AF)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFF4285F4)),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+            ),
+          ),
+        ],
 
         SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 20)),
 
@@ -687,7 +1017,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   )
                 : Text(
-                    'Create Account',
+                    _isDoctorMode ? 'Create Doctor Account' : 'Create Account',
                     style: AppTextStyles.button(
                       context,
                     ).copyWith(color: Colors.white),
