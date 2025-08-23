@@ -38,11 +38,14 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _addWelcomeMessage() {
     setState(() {
-      _messages.add(ChatMessage(
-        text: "Hello! I'm HealthLock AI, your health assistant. I can help you with health-related questions, nutrition advice, and general wellness information. How can I assist you today?",
-        isUser: false,
-        timestamp: DateTime.now(),
-      ));
+      _messages.add(
+        ChatMessage(
+          text:
+              "Hello! I'm HealthLock AI, your health assistant. I can help you with health-related questions, nutrition advice, and general wellness information. How can I assist you today?",
+          isUser: false,
+          timestamp: DateTime.now(),
+        ),
+      );
     });
   }
 
@@ -133,7 +136,10 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   const SizedBox(width: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
@@ -244,7 +250,9 @@ class _ChatScreenState extends State<ChatScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: message.isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         children: [
           if (!message.isUser) ...[
             Container(
@@ -279,7 +287,9 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Text(
                 message.text,
                 style: TextStyle(
-                  color: message.isUser ? Colors.white : const Color(0xFF1A1A1A),
+                  color: message.isUser
+                      ? Colors.white
+                      : const Color(0xFF1A1A1A),
                   fontSize: 14,
                   height: 1.4,
                 ),
@@ -313,11 +323,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
     // Add user message
     setState(() {
-      _messages.add(ChatMessage(
-        text: message,
-        isUser: true,
-        timestamp: DateTime.now(),
-      ));
+      _messages.add(
+        ChatMessage(text: message, isUser: true, timestamp: DateTime.now()),
+      );
       _isLoading = true;
     });
 
@@ -326,25 +334,32 @@ class _ChatScreenState extends State<ChatScreen> {
 
     try {
       final response = await _sendChatMessage(message);
-      
+
       // Add AI response
       setState(() {
-        _messages.add(ChatMessage(
-          text: response['response'] ?? 'Sorry, I couldn\'t process your request.',
-          isUser: false,
-          timestamp: DateTime.now(),
-          messageId: response['messageId']?.toString(),
-        ));
+        _messages.add(
+          ChatMessage(
+            text:
+                response['response'] ??
+                'Sorry, I couldn\'t process your request.',
+            isUser: false,
+            timestamp: DateTime.now(),
+            messageId: response['messageId']?.toString(),
+          ),
+        );
         _isLoading = false;
       });
     } catch (e) {
       // Add error message
       setState(() {
-        _messages.add(ChatMessage(
-          text: 'Sorry, I\'m having trouble connecting right now. Please try again later.',
-          isUser: false,
-          timestamp: DateTime.now(),
-        ));
+        _messages.add(
+          ChatMessage(
+            text:
+                'Sorry, I\'m having trouble connecting right now. Please try again later.',
+            isUser: false,
+            timestamp: DateTime.now(),
+          ),
+        );
         _isLoading = false;
       });
     }
@@ -354,20 +369,18 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<Map<String, dynamic>> _sendChatMessage(String message) async {
     final dio = Dio();
-    
+
     // Get token for authentication
     final token = await TokenService.getToken();
     if (token != null) {
       dio.options.headers['Authorization'] = 'Bearer $token';
     }
-    
+
     dio.options.headers['Content-Type'] = 'application/json';
 
     final response = await dio.post(
-      '${AppConfig.apiBaseUrl}/chat/chat',
-      data: {
-        'message': message,
-      },
+      '${AppConfig.apiBaseUrl}${AppConfig.chatEndpoint}',
+      data: {'message': message},
     );
 
     return response.data;

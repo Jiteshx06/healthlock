@@ -700,7 +700,7 @@ class ApiService {
       dio.options.headers['Authorization'] = 'Bearer $token';
       dio.options.headers['Content-Type'] = 'application/json';
 
-      final url = '$baseUrl/analysis/analyze/$userId';
+      final url = '$baseUrl${AppConfig.analyzeEndpoint}/$userId';
       print('Making request to: $url');
 
       final response = await dio.get(url);

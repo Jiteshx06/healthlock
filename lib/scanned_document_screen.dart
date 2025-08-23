@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import 'api_service.dart';
 import 'token_service.dart';
+import 'config.dart';
 
 class ScannedDocumentScreen extends StatefulWidget {
   final Map<String, dynamic> qrData;
@@ -556,14 +560,128 @@ class _ScannedDocumentScreenState extends State<ScannedDocumentScreen> {
     );
   }
 
-  void _downloadDocument(String fileUrl, String fileName) {
-    // TODO: Implement document download
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Downloading $fileName...'),
-        backgroundColor: Colors.green,
-      ),
-    );
+  void _downloadDocument(String fileUrl, String fileName) async {
+    try {
+      // Show loading indicator
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Downloading and saving $fileName...'),
+          backgroundColor: const Color(0xFF4285F4),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      // Get current user data
+      final doctorId = await TokenService.getUserId();
+      final doctorName = await TokenService.getUserName();
+      final token = await TokenService.getToken();
+
+      // Get patient data from QR
+      final patientId = widget.qrData['userId'] ?? '';
+
+      if (doctorId == null || doctorName == null || token == null) {
+        throw Exception(
+          'Missing doctor authentication data. Please login again.',
+        );
+      }
+
+      if (patientId.isEmpty) {
+        throw Exception('Missing patient information from QR code.');
+      }
+
+      // Prepare request data for saving to doctor's records
+      final requestData = {
+        'doctorId': doctorId,
+        'doctorName': doctorName,
+        'patientId': patientId,
+        'fileName': fileName,
+        'fileUrl': fileUrl,
+      };
+
+      print('=== DOWNLOADING AND SAVING DOCUMENT ===');
+      print('URL: ${AppConfig.apiBaseUrl}${AppConfig.shareFileEndpoint}');
+      print('Request Data: $requestData');
+
+      // Make API call to save document to doctor's records
+      final response = await http
+          .post(
+            Uri.parse('${AppConfig.apiBaseUrl}${AppConfig.shareFileEndpoint}'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+              'ngrok-skip-browser-warning': '1',
+            },
+            body: json.encode(requestData),
+          )
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () {
+              throw Exception(
+                'Request timeout. Please check your connection and try again.',
+              );
+            },
+          );
+
+      print('Download/Save Response Status: ${response.statusCode}');
+      print('Download/Save Response Body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Success - document saved to doctor's records
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '✅ Document "$fileName" downloaded and saved to your records!',
+              ),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+        print('Download/Save Success: Document saved to doctor records');
+      } else {
+        // Error response
+        String errorMessage = 'Failed to save document to records';
+        try {
+          final errorData = json.decode(response.body);
+          errorMessage = errorData['message'] ?? errorMessage;
+        } catch (jsonError) {
+          errorMessage = 'Server error: ${response.statusCode}';
+        }
+
+        print(
+          'Download/Save API Error: Status ${response.statusCode}, Message: $errorMessage',
+        );
+        throw Exception(errorMessage);
+      }
+    } catch (e) {
+      print('Download/Save Error: $e');
+
+      String userMessage = 'Failed to download and save document';
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('Connection')) {
+        userMessage = 'Network error. Please check your connection.';
+      } else if (e.toString().contains('TimeoutException')) {
+        userMessage = 'Request timeout. Please try again.';
+      } else if (e.toString().contains('Authentication')) {
+        userMessage = 'Authentication failed. Please login again.';
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(userMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: Colors.white,
+              onPressed: () => _downloadDocument(fileUrl, fileName),
+            ),
+          ),
+        );
+      }
+    }
   }
 
   String _formatDate(String dateString) {
@@ -614,13 +732,131 @@ class _ScannedDocumentScreenState extends State<ScannedDocumentScreen> {
     );
   }
 
-  void _shareDocument(String fileUrl, String fileName) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Sharing $fileName...'),
-        backgroundColor: const Color(0xFF4285F4),
-      ),
-    );
+  void _shareDocument(String fileUrl, String fileName) async {
+    try {
+      // Show loading indicator
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Sharing $fileName...'),
+          backgroundColor: const Color(0xFF4285F4),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      // Get current user data
+      final prefs = await SharedPreferences.getInstance();
+      final doctorId = prefs.getString('userId') ?? '';
+      final doctorName = prefs.getString('userName') ?? 'Unknown Doctor';
+      final token = prefs.getString('token') ?? '';
+
+      // Get patient data from QR
+      final patientId = widget.qrData['userId'] ?? '';
+
+      if (doctorId.isEmpty || patientId.isEmpty) {
+        throw Exception('Missing required user information');
+      }
+
+      if (token.isEmpty) {
+        throw Exception('Authentication token not found. Please login again.');
+      }
+
+      // Prepare request data
+      final requestData = {
+        'doctorId': doctorId,
+        'doctorName': doctorName,
+        'patientId': patientId,
+        'fileName': fileName,
+        'fileUrl': fileUrl,
+      };
+
+      print('=== SHARING DOCUMENT ===');
+      print('URL: ${AppConfig.apiBaseUrl}${AppConfig.shareFileEndpoint}');
+      print('Request Data: $requestData');
+      print('Doctor ID: $doctorId');
+      print('Patient ID: $patientId');
+
+      // Make API call with authentication
+      final response = await http
+          .post(
+            Uri.parse('${AppConfig.apiBaseUrl}${AppConfig.shareFileEndpoint}'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+              'ngrok-skip-browser-warning': '1',
+            },
+            body: json.encode(requestData),
+          )
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () {
+              throw Exception(
+                'Request timeout. Please check your connection and try again.',
+              );
+            },
+          );
+
+      print('Share Document Response Status: ${response.statusCode}');
+      print('Share Document Response Body: ${response.body}');
+      print('Share Document Response Headers: ${response.headers}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Success
+        final responseData = json.decode(response.body);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Document "$fileName" shared successfully!'),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+        print(
+          'Share Document Success: ${responseData['message'] ?? 'Document shared'}',
+        );
+      } else {
+        // Error response
+        String errorMessage = 'Failed to share document';
+        try {
+          final errorData = json.decode(response.body);
+          errorMessage = errorData['message'] ?? errorMessage;
+        } catch (jsonError) {
+          errorMessage = 'Server error: ${response.statusCode}';
+        }
+
+        print(
+          'Share Document API Error: Status ${response.statusCode}, Message: $errorMessage',
+        );
+        throw Exception(errorMessage);
+      }
+    } catch (e) {
+      print('Share Document Error: $e');
+
+      String userMessage = 'Failed to share document';
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('Connection')) {
+        userMessage = 'Network error. Please check your connection.';
+      } else if (e.toString().contains('TimeoutException')) {
+        userMessage = 'Request timeout. Please try again.';
+      } else if (e.toString().contains('Authentication')) {
+        userMessage = 'Authentication failed. Please login again.';
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(userMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: Colors.white,
+              onPressed: () => _shareDocument(fileUrl, fileName),
+            ),
+          ),
+        );
+      }
+    }
   }
 
   void _printDocument(String fileUrl, String fileName) {

@@ -13,11 +13,16 @@ class AppConfig {
 
   // API Endpoints
   static const String loginEndpoint = '/api/patients/login';
-  static const String registerEndpoint = '/patients/register';
+  static const String registerEndpoint = '/api/patients/register';
   static const String doctorLoginEndpoint = '/api/doctors/login';
   static const String doctorRegisterEndpoint = '/api/doctors/register';
   static const String fileUploadEndpoint = '/api/files/upload';
   static const String userFilesEndpoint = '/api/accessdata/uploads';
+  static const String shareFileEndpoint = '/api/docShare/share-file/';
+
+  // AI/Analysis Endpoints - Testing different patterns
+  static const String analyzeEndpoint = '/api/analysis/analyze';
+  static const String chatEndpoint = '/api/chat/chat';
 
   // Other configuration
   static const int apiTimeoutSeconds = 30;
