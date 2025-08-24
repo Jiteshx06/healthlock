@@ -29,8 +29,8 @@ class AppConfig {
   static const bool enableApiLogging = true;
 
   // Demo credentials (remove in production)
-  static const String demoEmail = 'jiteshp277@gmail.com';
-  static const String demoPassword = 'Jitesh@@321';
+  static const String demoEmail = 'Demo@gmail.com';
+  static const String demoPassword = '12345678';
 
   // Demo doctor credentials (remove in production)
   static const String demoDoctorEmail = 'doctor@healthlock.com';
