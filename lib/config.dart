@@ -8,7 +8,11 @@ class AppConfig {
   // Option 2: Use 10.0.2.2 for Android emulator (doesn't work for physical devices)
   // static const String apiBaseUrl = 'http://10.0.2.2:3000/api';
 
+<<<<<<< HEAD
 
+=======
+  // For production/testing (using ngrok tunnel - UPDATED WITH NEW NGROK URL):
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
   static const String apiBaseUrl = 'https://backendhealthlock.onrender.com';
 
   // API Endpoints
@@ -19,6 +23,7 @@ class AppConfig {
   static const String fileUploadEndpoint = '/api/files/upload';
   static const String userFilesEndpoint = '/api/accessdata/uploads';
   static const String shareFileEndpoint = '/api/docShare/share-file/';
+<<<<<<< HEAD
   static const String allFilesEndpoint = '/api/docShare/all-files';
   static const String addLogEndpoint = '/api/logs/add';
 
@@ -26,6 +31,10 @@ class AppConfig {
   static String deleteSharedFileEndpoint(String fileId) => '/api/docShare/delete-file/$fileId';
 
 
+=======
+
+  // AI/Analysis Endpoints - Testing different patterns
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
   static const String analyzeEndpoint = '/api/analysis/analyze';
   static const String chatEndpoint = '/api/chat/chat';
 
@@ -34,8 +43,13 @@ class AppConfig {
   static const bool enableApiLogging = true;
 
   // Demo credentials (remove in production)
+<<<<<<< HEAD
   static const String demoEmail = 'jiteshp277@gmail.com';
   static const String demoPassword = 'Jitesh@@321';
+=======
+  static const String demoEmail = 'Demo@gmail.com';
+  static const String demoPassword = '12345678';
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
 
   // Demo doctor credentials (remove in production)
   static const String demoDoctorEmail = 'doctor@healthlock.com';

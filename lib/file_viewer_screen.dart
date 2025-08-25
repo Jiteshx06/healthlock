@@ -33,7 +33,11 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
       final doctorName = await TokenService.getUserName();
 
       if (doctorId != null && doctorName != null) {
+<<<<<<< HEAD
         await ApiService.addViewLog(
+=======
+        await ApiService.addLog(
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
           doctorId: doctorId,
           doctorName: doctorName,
           patientId: widget.file.userId ?? 'unknown',

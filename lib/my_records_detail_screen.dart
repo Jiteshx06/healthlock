@@ -1019,6 +1019,7 @@ class _MyRecordsDetailScreenState extends State<MyRecordsDetailScreen> {
         ),
       );
 
+<<<<<<< HEAD
       // Try to open in-app first, then fallback to external
       try {
         await launchUrl(fileUri, mode: LaunchMode.inAppBrowserView);
@@ -1032,6 +1033,12 @@ class _MyRecordsDetailScreenState extends State<MyRecordsDetailScreen> {
             throw Exception('All launch methods failed');
           }
         }
+=======
+      if (await canLaunchUrl(fileUri)) {
+        await launchUrl(fileUri, mode: LaunchMode.externalApplication);
+      } else {
+        await launchUrl(fileUri, mode: LaunchMode.platformDefault);
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

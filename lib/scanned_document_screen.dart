@@ -45,7 +45,11 @@ class _ScannedDocumentScreenState extends State<ScannedDocumentScreen> {
       final patientId = widget.qrData['userId'] ?? 'unknown';
 
       if (doctorId != null && doctorName != null) {
+<<<<<<< HEAD
         await ApiService.addViewLog(
+=======
+        await ApiService.addLog(
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
           doctorId: doctorId,
           doctorName: doctorName,
           patientId: patientId,
@@ -272,7 +276,11 @@ class _ScannedDocumentScreenState extends State<ScannedDocumentScreen> {
                             size: 20,
                           ),
                           label: const Text(
+<<<<<<< HEAD
                             'Save Document',
+=======
+                            'Download Document',
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
                             style: TextStyle(
                               color: Color(0xFF4285F4),
                               fontWeight: FontWeight.w600,

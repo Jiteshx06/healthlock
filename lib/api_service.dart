@@ -863,6 +863,7 @@ class ApiService {
       throw ApiException('Network error. Please check your connection.');
     }
   }
+<<<<<<< HEAD
 
   // Get all shared files for doctor
   static Future<List<SharedFileEntry>> getAllSharedFiles() async {
@@ -1020,6 +1021,8 @@ class ApiService {
       throw ApiException('Network error. Please check your connection.');
     }
   }
+=======
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
 }
 
 // Login response model
@@ -1529,6 +1532,7 @@ class AuditLogEntry {
     }
   }
 }
+<<<<<<< HEAD
 
 // Shared File Entry model
 class SharedFileEntry {
@@ -1604,3 +1608,5 @@ class SharedFileEntry {
     }
   }
 }
+=======
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee

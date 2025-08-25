@@ -123,7 +123,11 @@ class _AnalyzeRecordsScreenState extends State<AnalyzeRecordsScreen> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
+<<<<<<< HEAD
                     'Click the button below to start analyzing your medical records with AI',
+=======
+                    'Click the button below to start analyzing your medical records with AI It takes few minutes',
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
                     style: TextStyle(
                       fontSize: 14,
                       color: Color(0xFF6B7280),

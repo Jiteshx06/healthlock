@@ -9,9 +9,12 @@ import 'analyze_records_screen.dart';
 import 'chat_screen.dart';
 import 'qr_scanner_screen.dart';
 import 'audit_log_screen.dart';
+<<<<<<< HEAD
 import 'doctor_shared_files_screen.dart';
 import 'patient_shared_files_screen.dart';
 import 'notifications_screen.dart';
+=======
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
 
 class MyRecordsScreen extends StatefulWidget {
   final bool showBottomNav;
@@ -24,7 +27,10 @@ class MyRecordsScreen extends StatefulWidget {
 
 class _MyRecordsScreenState extends State<MyRecordsScreen> {
   int _totalFiles = 0;
+<<<<<<< HEAD
   int _sharedFilesCount = 0;
+=======
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
   bool _isLoadingCount = true;
   bool _isDoctor = false;
   String _userName = 'HealthLock User';
@@ -33,7 +39,10 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
   void initState() {
     super.initState();
     _loadFileCount();
+<<<<<<< HEAD
     _loadSharedFilesCount();
+=======
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
     _loadUserName();
     _checkUserRole();
   }
@@ -57,6 +66,7 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
     }
   }
 
+<<<<<<< HEAD
   Future<void> _loadSharedFilesCount() async {
     try {
       final userRole = await TokenService.getUserRole();
@@ -84,6 +94,8 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
     }
   }
 
+=======
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
   Future<void> _loadUserName() async {
     try {
       final name = await TokenService.getUserName();
@@ -382,7 +394,11 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
                   _buildFeatureCard(
                     icon: Icons.share_outlined,
                     iconColor: const Color(0xFFF59E0B),
+<<<<<<< HEAD
                     title: 'Share Medical Files',
+=======
+                    title: 'Share Medical History',
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
                     subtitle: 'Securely share with healthcare providers',
                     onTap: () {
                       _showFileSelectionForSharing();
@@ -394,7 +410,55 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
 
             const SizedBox(height: 32),
 
+<<<<<<< HEAD
 
+=======
+            // Recent Activity Section
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Recent Activity',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1A1A1A),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Activity Items
+                  _buildActivityItem(
+                    title: 'Blood Test Results',
+                    subtitle: '2 hours ago',
+                    description: 'Shared with Dr. Smith',
+                    icon: Icons.access_time,
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  _buildActivityItem(
+                    title: 'X-Ray Report',
+                    subtitle: 'Yesterday',
+                    description: 'Uploaded new document',
+                    icon: Icons.access_time,
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  _buildActivityItem(
+                    title: 'Vaccination Record',
+                    subtitle: '2 days ago',
+                    description: 'Updated information',
+                    icon: Icons.access_time,
+                  ),
+                ],
+              ),
+            ),
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
 
             const SizedBox(height: 100), // Space for bottom navigation
           ],
@@ -403,7 +467,66 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
     );
   }
 
+<<<<<<< HEAD
 
+=======
+  Widget _buildActivityItem({
+    required String title,
+    required String subtitle,
+    required String description,
+    required IconData icon,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: const Color(0xFF6B7280).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Icon(icon, color: const Color(0xFF6B7280), size: 16),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1A1A1A),
+                      ),
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF6B7280),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                description,
+                style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
 
   void _showFileSelectionForSharing() async {
     try {
@@ -596,9 +719,25 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
       // Doctor-specific services
       cards.addAll([
         _buildServiceCard(
+<<<<<<< HEAD
           icon: Icons.folder_outlined,
           iconColor: const Color(0xFF3B82F6),
           title: 'Own Records',
+=======
+          icon: Icons.qr_code_scanner,
+          iconColor: const Color(0xFF10B981),
+          title: 'Scan QR',
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const QRScannerScreen()),
+            );
+          },
+        ),
+        _buildServiceCard(
+          icon: Icons.folder_outlined,
+          iconColor: const Color(0xFF3B82F6),
+          title: 'Records',
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
           onTap: () {
             Navigator.of(context)
                 .push(
@@ -612,6 +751,7 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
           },
         ),
         _buildServiceCard(
+<<<<<<< HEAD
           icon: Icons.folder_shared_outlined,
           iconColor: const Color(0xFF10B981),
           title: 'Patients Records',
@@ -636,15 +776,37 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(builder: (context) => const QRScannerScreen()),
+=======
+          icon: Icons.analytics_outlined,
+          iconColor: const Color(0xFF8B5CF6),
+          title: 'Analyze',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AnalyzeRecordsScreen(),
+              ),
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
             );
           },
         ),
         _buildServiceCard(
+<<<<<<< HEAD
           icon: Icons.share_outlined,
           iconColor: const Color(0xFFF59E0B),
           title: 'Share Medical Files',
           onTap: () {
             _showFileSelectionForSharing();
+=======
+          icon: Icons.smart_toy_outlined,
+          iconColor: const Color(0xFFF59E0B),
+          title: 'AI Chat',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ChatScreen()),
+            );
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
           },
         ),
       ]);
@@ -703,6 +865,7 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
             );
           },
         ),
+<<<<<<< HEAD
         _buildServiceCard(
           icon: Icons.folder_shared_outlined,
           iconColor: const Color(0xFF10B981),
@@ -725,6 +888,8 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
             );
           },
         ),
+=======
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
       ]);
     }
 
@@ -736,7 +901,10 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
     required Color iconColor,
     required String title,
     required VoidCallback onTap,
+<<<<<<< HEAD
     int? count,
+=======
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -757,6 +925,7 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
+<<<<<<< HEAD
             Stack(
               children: [
                 Container(
@@ -794,6 +963,16 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
                     ),
                   ),
               ],
+=======
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(icon, color: iconColor, size: 16),
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
             ),
             const SizedBox(height: 6),
             Flexible(

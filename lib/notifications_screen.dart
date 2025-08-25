@@ -15,6 +15,7 @@ class NotificationsScreen extends StatefulWidget {
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
   String _selectedCategory = 'All';
+<<<<<<< HEAD
   List<NotificationItem> _notifications = [];
   bool _isLoading = true;
   String? _errorMessage;
@@ -79,6 +80,55 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       return false;
     }
   }
+=======
+
+  final List<String> _categories = ['All', 'Medical', 'Security', 'Updates'];
+
+  final List<NotificationItem> _notifications = [
+    NotificationItem(
+      icon: Icons.person_outline,
+      title: 'Dr. Rao viewed your CBC Report',
+      time: '10:32 AM',
+      isUnread: true,
+      category: 'Medical',
+    ),
+    NotificationItem(
+      icon: Icons.security_outlined,
+      title: 'New sign-in from Chrome Browser',
+      time: '9:45 AM',
+      isUnread: true,
+      category: 'Security',
+    ),
+    NotificationItem(
+      icon: Icons.calendar_today_outlined,
+      title: 'Upcoming appointment with Dr. Smith tomorrow at 10:00 AM',
+      time: 'Yesterday',
+      isUnread: false,
+      category: 'Medical',
+    ),
+    NotificationItem(
+      icon: Icons.assignment_outlined,
+      title: 'Your blood test results are ready to view',
+      time: 'Yesterday',
+      isUnread: false,
+      category: 'Medical',
+    ),
+    NotificationItem(
+      icon: Icons.healing_outlined,
+      title: 'Prescription refill request approved',
+      time: '2 days ago',
+      isUnread: false,
+      category: 'Medical',
+    ),
+    NotificationItem(
+      icon: Icons.receipt_outlined,
+      title: 'Payment of \$150 processed successfully',
+      time: '2 days ago',
+      isUnread: false,
+      category: 'Updates',
+    ),
+  ];
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
 
   List<NotificationItem> get _filteredNotifications {
     if (_selectedCategory == 'All') {
@@ -159,6 +209,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () {
+<<<<<<< HEAD
                             // Mark all notifications as read
                             setState(() {
                               for (var notification in _notifications) {
@@ -168,6 +219,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('All notifications marked as read'),
+=======
+                            // Clear all notifications
+                            setState(() {
+                              _notifications.clear();
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('All notifications cleared'),
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
                                 backgroundColor: Color(0xFF10B981),
                               ),
                             );
@@ -177,7 +237,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             padding: const EdgeInsets.symmetric(vertical: 8),
                           ),
                           child: const Text(
+<<<<<<< HEAD
                             'Mark All Read',
+=======
+                            'Clear All',
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
                             style: TextStyle(
                               fontSize: 12,
                               color: Color(0xFF4285F4),
@@ -251,6 +315,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
             // Notifications List
             Expanded(
+<<<<<<< HEAD
               child: _buildNotificationsList(),
             ),
           ],
@@ -274,10 +339,23 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               style: TextStyle(
                 fontSize: 16,
                 color: Color(0xFF6B7280),
+=======
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                itemCount: _filteredNotifications.length,
+                itemBuilder: (context, index) {
+                  final notification = _filteredNotifications[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: _buildNotificationItem(notification),
+                  );
+                },
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
               ),
             ),
           ],
         ),
+<<<<<<< HEAD
       );
     }
 
@@ -372,6 +450,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             child: _buildNotificationItem(notification),
           );
         },
+=======
+>>>>>>> f5945bda9cd598212d24485cf3d8ddb19e5edaee
       ),
     );
   }
